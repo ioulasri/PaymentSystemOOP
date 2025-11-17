@@ -13,8 +13,14 @@ class ValidationError(ProjectError):
 	def __init__(self, message, field=None):
 		super().__init__(message, field)
 		
-class PaymentError(Exception):
+class PaymentError(ProjectError):
 	"""Raised when payment fails."""
+
+	def __init__(self, message, field=None):
+		super().__init__(message, field)
+
+class ValueError(ProjectError):
+	"""Raised when value fails"""
 
 	def __init__(self, message, field=None):
 		super().__init__(message, field)
