@@ -40,15 +40,15 @@ class CreditCardPayment(PaymentStrategy):
 			ValidationError: If any validation check fails with specific error message.
 		"""
 		if not self.card_holder:
-			raise ValidationError("card holder empty")
+			raise ValidationError("ValidationError", "card holder empty")
 		if not self.check_cardnumber_length(self.card_number):
-			raise ValidationError("card number length is invalid")
+			raise ValidationError("ValidationError", "card number length is invalid")
 		if not self.check_expirationdate_format(self.expiration_date):
-			raise ValidationError("expiration date format is invalid")
+			raise ValidationError("ValidationError", "expiration date format is invalid")
 		if not self.check_expirationdate(self.expiration_date):
-			raise ValidationError("expiration date is in the past")
+			raise ValidationError("ValidationError", "expiration date is in the past")
 		if not self.check_cvv_length(self.cvv):
-			raise ValidationError("cvv length is invalid")
+			raise ValidationError("ValidationError", "cvv length is invalid")
 		return True
 	
 	
