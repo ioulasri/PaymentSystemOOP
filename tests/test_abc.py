@@ -17,4 +17,8 @@ class TestUser(unittest.TestCase):
         with self.assertRaises(TypeError):
             User()
 
-unittest.main()
+
+if __name__ == '__main__':
+    # Allow running this file directly, but keep it discovery-friendly
+    # so test runners (unittest discovery / pytest) can import it safely.
+    unittest.main()
