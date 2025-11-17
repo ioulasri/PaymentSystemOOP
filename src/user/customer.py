@@ -1,18 +1,23 @@
-"""Customer user implementation module.
+"""Customer model for the payment system.
 
-This module declares the ``Customer`` user type used by the payment
-system. The current file provides the intended attribute names and the
-method names expected on a ``Customer`` object. The file contains only
-documentation-level descriptions for each attribute and method; I did
-not modify runtime behaviour or method signatures.
+This module provides the ``Customer`` class which extends the abstract
+base `User` class. The implementation stores simple in-memory structures
+for wallets, transaction history and saved payment methods. The file is
+documented so other developers understand the intent and the shape of
+the data.
 
-If you'd like, I can update the method signatures to include ``self``
-and provide concrete implementations (for example, wiring balance
-updates to the payment subsystem), or add unit tests that exercise the
-behaviour.
+Notes
+-----
+This is a lightweight, example-style implementation intended for tests
+and local runs. In production you'd replace wallet objects with proper
+services or adapters and persist transaction history to a database.
 """
 
-from admin import User
+from typing import Any, Dict, List
+from uuid import uuid4
+
+# Use relative import to the base User in the same package
+from .user import User
 
 
 class Customer(User):
@@ -20,118 +25,155 @@ class Customer(User):
 
     Attributes
     ----------
-    _wallet_balance : float
-        The customer's current wallet balance.
-    _transaction_history : list[dict]
-        A list of transaction records (each a mapping describing the
-        transaction details such as amount, date and status).
-    _saved_payment_methods : list
-        Stored payment method descriptors (for example, tokens or
-        masked card data).
+    _user_id : str
+        Unique identifier for the customer.
+    _name : str
+        Customer's name.
+    _email : str
+        Customer's contact email.
+    _wallets : Dict[str, Any]
+        Mapping of payment method identifiers to wallet-like objects or
+        numeric balances. Wallet objects may implement helper methods
+        like ``get_balance``, ``set_balance`` or ``deduct``; the
+        Customer methods handle these cases heuristically.
+    _transaction_history : List[Dict[str, Any]]
+        In-memory append-only list of transaction records.
+    _saved_payment_methods : List[Any]
+        Stored payment method descriptors (tokens, IDs, etc.).
     _fraud_status : str
-        A short string describing the fraud review state (for example,
-        "clear", "under_review", "blocked").
+        Short string indicating fraud review state (for example,
+        ``'clear'`` or ``'under_review'``).
     _failed_attempts : int
-        Number of recent failed payment attempts (useful for throttling
-        or security checks).
-
-    Notes
-    -----
-    The methods below are documented in-place. Several of the
-    definitions in the file currently omit the explicit ``self``
-    parameter — when implementing these methods, they should be
-    instance methods (that is, include ``self`` as the first
-    parameter). I intentionally did not change signatures in this edit.
+        Counter for recent failed attempts (useful for throttling).
     """
 
-    def __init__(self):
-        """Initialize attribute annotations for a customer instance.
+    def __init__(self, user_id: str, name: str, email: str):
+        """Create a Customer instance.
 
-        This initializer declares the attributes used by the class. The
-        concrete class should assign actual values (or I can update the
-        initializer to accept parameters and populate these fields).
+        Parameters
+        ----------
+        user_id : str
+            Unique identifier for the user.
+        name : str
+            Human-readable name.
+        email : str
+            Contact email.
         """
-        self._wallet_balance: float
-        self._transaction_history: list[dict]
-        self._saved_payment_methods: list
-        self._fraud_status: str
-        self._failed_attempts: int
+        super().__init__()
+        self._user_id = user_id
+        self._name = name
+        self._email = email
+        self._wallets: Dict[str, Any] = {}
+        self._transaction_history: List[Dict[str, Any]] = []
+        self._saved_payment_methods: List[Any] = []
+        self._fraud_status: str = "clear"
+        self._failed_attempts: int = 0
 
+    def view_balance(self) -> float:
+        """Return the aggregated balance across all wallets.
 
-    def view_balance() -> float:
-        """Return the customer's current wallet balance.
-
-        Returns
-        -------
-        float
-            The available balance. Implementations should return a
-            numeric type representing the customer's balance.
+        The method attempts to coerce wallet entries to numeric balances.
+        Wallet objects may provide helper methods (``get_balance``); if
+        an entry cannot be converted to float it is ignored.
         """
-        pass
-    
-    def add_transaction(transaction: dict) -> None:
-        """Record a new transaction in the customer's history.
+        balance = 0.0
+        for wallet in self._wallets.values():
+            try:
+                if hasattr(wallet, "get_balance"):
+                    balance += float(wallet.get_balance())
+                else:
+                    balance += float(wallet)
+            except Exception:
+                # Ignore wallets that can't be interpreted as numbers
+                continue
+        return balance
+
+    def add_transaction(self, transaction: Dict[str, Any]) -> None:
+        """Append a transaction record to the customer's history.
 
         Parameters
         ----------
         transaction : dict
-            A mapping describing the transaction (amount, timestamp,
-            status, etc.). Implementations should validate and append
-            the record to ``_transaction_history`` and update other
-            related fields as necessary.
+            A mapping describing the transaction (id, amount, status,
+            optional error message, etc.).
         """
-        pass
-    
-    def view_transaction_history() -> list:
-        """Return the customer's transaction history.
+        self._transaction_history.append(transaction)
 
-        Returns
-        -------
-        list
-            A list of transaction records (each a dict). Ordering and
-            pagination are implementation-specific.
+    def view_transaction_history(self) -> List[Dict[str, Any]]:
+        """Return a shallow copy of the transaction history list.
+
+        Returns a new list so callers cannot mutate the internal
+        history accidentally.
         """
-        pass
-    
-    def initiate_payment(amount, method) -> dict:
-        """Attempt a payment on behalf of the customer.
+        return list(self._transaction_history)
+
+    def initiate_payment(self, amount: float, method: str) -> Dict[str, Any]:
+        """Attempt to pay `amount` using `method` and record the result.
+
+        The method performs simple checks and updates in-memory wallet
+        objects if present. It returns a transaction record describing
+        the result and always appends that record to history.
 
         Parameters
         ----------
-        amount
-            The amount to charge.
-        method
-            The payment method to use (for example, a token or saved
-            method descriptor).
+        amount : float
+            Amount to charge.
+        method : str
+            Identifier of the payment method to use (must be present in
+            ``_saved_payment_methods``).
 
         Returns
         -------
         dict
-            A mapping containing the payment result (status, id, and
-            additional metadata). Implementations should integrate with
-            the payment subsystem and update wallet balance / history as
-            appropriate.
+            Transaction record including ``id``, ``amount``, ``method``,
+            ``status`` and optional ``error``.
         """
-        pass
-    
-    def save_payment_method(method) -> None:
+        if method not in self._saved_payment_methods:
+            raise ValueError("Payment method not recognized")
+
+        wallet = self._wallets.get(method)
+        txn_id = str(uuid4())
+        transaction = {
+            "id": txn_id,
+            "amount": amount,
+            "method": method,
+            "status": "failed",
+        }
+
+        if wallet is None:
+            transaction["error"] = "no wallet configured for method"
+            self.add_transaction(transaction)
+            return transaction
+
+        try:
+            if hasattr(wallet, "deduct"):
+                wallet.deduct(amount)
+            elif hasattr(wallet, "get_balance") and hasattr(wallet, "set_balance"):
+                new_balance = float(wallet.get_balance()) - float(amount)
+                wallet.set_balance(new_balance)
+            else:
+                current = float(wallet)
+                new = current - float(amount)
+                self._wallets[method] = new
+        except Exception as exc:
+            transaction["error"] = str(exc)
+            self.add_transaction(transaction)
+            return transaction
+
+        transaction["status"] = "success"
+        self.add_transaction(transaction)
+        return transaction
+
+    def save_payment_method(self, method: Any) -> None:
         """Persist a payment method for future use.
 
-        Parameters
-        ----------
-        method
-            Payment method details to save. Implementations should
-            validate and append to ``_saved_payment_methods``.
+        The stored descriptor is opaque to this class — it can be a
+        string token, a payment-method object or any identifier used by
+        payment backends.
         """
-        pass
-    
-    def get_fraud_status() -> str:
-        """Return a short string describing the customer's fraud state.
+        if method not in self._saved_payment_methods:
+            self._saved_payment_methods.append(method)
 
-        Returns
-        -------
-        str
-            One of the expected fraud status values (for example,
-            ``'clear'``, ``'under_review'``, ``'blocked'``).
-        """
-        pass
+    def get_fraud_status(self) -> str:
+        """Return the customer's fraud review status string."""
+        return self._fraud_status
