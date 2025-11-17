@@ -51,6 +51,23 @@ class Admin(User):
         self._permissions: List[str] = permissions or []
         self._review_queue: List[Dict[str, Any]] = []
         self._audit_log: List[Dict[str, Any]] = []
+        # mark active by default
+        self._is_active: bool = True
+
+    def get_user_info(self) -> Dict[str, Any]:
+        """Return a serializable mapping with basic admin information."""
+        return {
+            "id": self._user_id,
+            "name": self._name,
+            "email": self._email,
+            "role": getattr(self, "_role", "admin"),
+            "is_active": bool(getattr(self, "_is_active", True)),
+            "permissions": list(self._permissions),
+        }
+
+    def deactivate(self) -> None:
+        """Mark the admin user as inactive."""
+        self._is_active = False
 
     def review_transaction(self, transaction_id: str) -> Optional[Dict[str, Any]]:
         """Return a copy of a transaction in the review queue (or None)."""
