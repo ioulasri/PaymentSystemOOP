@@ -1,5 +1,5 @@
-from payment.payment_strategy import PaymentStrategy
-from payment.exceptions import *
+from .payment_strategy import PaymentStrategy
+from .exceptions import *
 import re
 from datetime import date
 
@@ -14,11 +14,10 @@ class CreditCardPayment(PaymentStrategy):
 			expiration_date (str): The card expiration date in MM/YY format.
 			cvv (str): The card verification value, typically 3-4 digits.
 		"""
-		super().__init__()
-		self.card_number: str
-		self.card_holder: str 
-		self.expiration_date: str
-		self.cvv: str
+		self.card_number: str = ""
+		self.card_holder: str = ""
+		self.expiration_date: str = ""
+		self.cvv: str = ""
 	
 
 
@@ -114,12 +113,14 @@ class CreditCardPayment(PaymentStrategy):
 		Validate that the expiration date is not in the past.
 
 		Args:
-			expiration_date (str): The expiration date in MM/YY format.
+			expiration_date (str): The expiration date in MM-YY format.
 
 		Returns:
 			bool: True if date is current or future, False if expired.
 		"""
-		expired_date = date(int(expiration_date[3:]), int(expiration_date[:3]), 1)
+		month, year = expiration_date.split('-')
+		full_year = 2000 + int(year)
+		expired_date = date(full_year, int(month), 1)
 		current_date = date.today()
 		return current_date < expired_date
 
