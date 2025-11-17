@@ -68,6 +68,22 @@ class Customer(User):
         self._saved_payment_methods: List[Any] = []
         self._fraud_status: str = "clear"
         self._failed_attempts: int = 0
+        # mark active by default
+        self._is_active: bool = True
+
+    def get_user_info(self) -> Dict[str, Any]:
+        """Return a serializable mapping with basic user information."""
+        return {
+            "id": self._user_id,
+            "name": self._name,
+            "email": self._email,
+            "role": getattr(self, "_role", "customer"),
+            "is_active": bool(getattr(self, "_is_active", True)),
+        }
+
+    def deactivate(self) -> None:
+        """Mark the user as inactive."""
+        self._is_active = False
 
     def view_balance(self) -> float:
         """Return the aggregated balance across all wallets.
