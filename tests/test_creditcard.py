@@ -20,7 +20,7 @@ class TestCreditCardPayment(unittest.TestCase):
 		# Valid test data
 		self.valid_card_number = "1234567890123456"
 		self.valid_card_holder = "John Doe"
-		self.valid_expiration_date = "12-30"  # December 2030
+		self.valid_expiration_date = "12-30"
 		self.valid_cvv = "123"
 
 	def tearDown(self):
