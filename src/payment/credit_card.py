@@ -14,12 +14,155 @@ class CreditCardPayment(PaymentStrategy):
 			expiration_date (str): The card expiration date in MM/YY format.
 			cvv (str): The card verification value, typically 3-4 digits.
 		"""
-		self.card_number: str = ""
-		self.card_holder: str = ""
-		self.expiration_date: str = ""
-		self.cvv: str = ""
+		self._card_holder: str = ""
+		self._balance = 0.0
+		self.__card_number: str = ""
+		self.__expiration_date: str = ""
+		self.__cvv: str = ""
 	
+	@property
+	def balance(self) -> float:
+		"""
+		Get the current balance available on the credit card.
 
+		Returns:
+			float: The current balance amount.
+		"""
+		return self._balance
+	
+	@balance.setter
+	def balance(self, value: float) -> None:
+		"""
+		Set the balance available on the credit card.
+
+		Args:
+			value (float): The balance amount to set.
+
+		Raises:
+			ValueError: If the balance value is negative.
+		"""
+		if value < 0:
+			raise ValueError("Balance cannot be negative.")
+		self._balance = value
+
+	@property
+	def cardholder(self) -> str:
+		"""
+		Get the cardholder's name.
+
+		Returns:
+			str: The name of the cardholder as it appears on the card.
+		"""
+		return self._card_holder
+
+	@cardholder.setter
+	def cardholder(self, value: str) -> None:
+		"""
+		Set the cardholder's name with validation.
+
+		The cardholder name must follow the format: "Prefix Firstname Lastname"
+		(e.g., "Mr John Doe", "Mrs Jane Smith").
+
+		Args:
+			value (str): The cardholder name in the format "Prefix Firstname Lastname".
+
+		Raises:
+			ValidationError: If the name doesn't follow the required format or any component is missing.
+		"""
+		try:
+			prefix, firstname, lastname = value.split(" ")
+			if not firstname or not lastname or not prefix:
+				raise ValidationError("ValidationError", "Cardholder should follow this format: Mr(s) -- --")
+			self._card_holder = value
+		except ValueError:
+			raise ValidationError("ValidationError", "Cardholder should follow this format: Mr(s) Firstname Lastname")
+
+	@property
+	def cardnumber(self) -> str:
+		"""
+		Get the credit card number.
+
+		Returns:
+			str: The 16-digit credit card number.
+		"""
+		return self.__card_number
+	
+	@cardnumber.setter
+	def cardnumber(self, value: str) -> None:
+		"""
+		Set the credit card number with validation.
+
+		The card number must be exactly 16 digits with no spaces or special characters.
+
+		Args:
+			value (str): The 16-digit credit card number.
+
+		Raises:
+			ValidationError: If the card number contains non-digit characters or is not 16 digits long.
+		"""
+		if not self.check_cardnumber(value):
+			raise ValidationError("ValidationError", "card number has non digit or length is invalid")
+		self.__card_number = value
+
+	@property
+	def expirationdate(self) -> str:
+		"""
+		Get the card expiration date.
+
+		Returns:
+			str: The card expiration date in MM-YY format.
+		"""
+		return self.__expiration_date
+	
+	@expirationdate.setter
+	def expirationdate(self, value: str) -> None:
+		"""
+		Set the card expiration date with validation.
+
+		The expiration date must be in MM-YY format (e.g., "12-25" for December 2025)
+		and must not be in the past.
+
+		Args:
+			value (str): The expiration date in MM-YY format.
+
+		Raises:
+			ValidationError: If the date format is invalid or the card has already expired.
+		"""
+		if not self.check_expirationdate_format(value):
+			raise ValidationError("ValidationError", "expiration date format is invalid")
+		try:
+			if not self.check_expirationdate(value):
+				raise ValidationError("ValidationError", "expiration date is in the past")
+		except (ValueError, IndexError):
+			raise ValidationError("ValidationError", "expiration date format is invalid")
+		self.__expiration_date = value
+
+	@property
+	def cvv(self) -> str:
+		"""
+		Get the card verification value (CVV).
+
+		Returns:
+			str: The CVV code, typically 3-4 digits.
+		"""
+		return self.__cvv
+
+	@cvv.setter
+	def cvv(self, value: str) -> None:
+		"""
+		Set the card verification value (CVV) with validation.
+
+		The CVV must be 3 digits for most cards or 4 digits for American Express cards.
+
+		Args:
+			value (str): The CVV code (3-4 digits).
+
+		Raises:
+			ValidationError: If the CVV contains non-digit characters or is not 3-4 digits long.
+		"""
+		if not self.check_cvv(value):
+			raise ValidationError("ValidationError", "cvv has non digit or length is invalid")
+		self.__cvv = value
 
 	def validate(self) -> bool:
 		"""
@@ -38,16 +181,16 @@ class CreditCardPayment(PaymentStrategy):
 		Raises:
 			ValidationError: If any validation check fails with specific error message.
 		"""
-		if not self.card_holder:
+		if not self.cardholder:
 			raise ValidationError("ValidationError", "card holder empty")
-		if not self.check_cardnumber_length(self.card_number):
-			raise ValidationError("ValidationError", "card number length is invalid")
-		if not self.check_expirationdate_format(self.expiration_date):
+		if not self.check_cardnumber(self.cardnumber):
+			raise ValidationError("ValidationError", "card number has non digit or length is invalid")
+		if not self.check_expirationdate_format(self.expirationdate):
 			raise ValidationError("ValidationError", "expiration date format is invalid")
-		if not self.check_expirationdate(self.expiration_date):
+		if not self.check_expirationdate(self.expirationdate):
 			raise ValidationError("ValidationError", "expiration date is in the past")
-		if not self.check_cvv_length(self.cvv):
-			raise ValidationError("ValidationError", "cvv length is invalid")
+		if not self.check_cvv(self.cvv):
+			raise ValidationError("ValidationError", "cvv has non digit or length is invalid")
 		return True
 	
 	
@@ -65,6 +208,8 @@ class CreditCardPayment(PaymentStrategy):
 			PaymentError: If the payment processing fails.
 			ValidationError: If validation fails before processing.
 		"""
+		if amount > self.balance:
+			raise PaymentError("Insufficient balance")
 		pass
 
 
@@ -84,7 +229,7 @@ class CreditCardPayment(PaymentStrategy):
 		"""
 		pass
 
-	def check_cardnumber_length(self, card_number: str) -> bool:
+	def check_cardnumber(self, card_number: str) -> bool:
 		"""
 		Validate that the card number has the correct length.
 
@@ -124,7 +269,7 @@ class CreditCardPayment(PaymentStrategy):
 		current_date = date.today()
 		return current_date < expired_date
 
-	def check_cvv_length(self, cvv: str) -> bool:
+	def check_cvv(self, cvv: str) -> bool:
 		"""
 		Validate that the CVV has the correct length.
 
