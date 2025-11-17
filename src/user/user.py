@@ -63,7 +63,6 @@ class User(ABC):
         self._role: str 
         self._is_active: bool
 
-
     @abstractmethod
     def get_user_info() -> dict:
         """Return a mapping containing user information.
