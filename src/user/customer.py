@@ -53,7 +53,7 @@ class Customer(User):
         Counter for recent failed attempts (useful for throttling).
     """
 
-    def __init__(self, user_id: str, name: str, email: str):
+    def __init__(self, name: str, email: str):
         """Create a Customer instance.
 
         Parameters
@@ -66,7 +66,7 @@ class Customer(User):
             Contact email.
         """
         super().__init__()
-        self._user_id = user_id
+        self._user_id = f"USR-{uuid4()}"
         self._name = name
         self._email = email
         self._wallets: Dict[str, Any] = {}
