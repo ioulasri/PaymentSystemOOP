@@ -15,9 +15,15 @@ services or adapters and persist transaction history to a database.
 
 from typing import Any, Dict, List
 from uuid import uuid4
+import sys
+from pathlib import Path
 
-# Use relative import to the base User in the same package
-from .user import User
+# Add parent directory to path to enable imports
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from src.user.user import User
 
 
 class Customer(User):
