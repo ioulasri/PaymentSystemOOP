@@ -29,6 +29,32 @@ class Paypal(PaymentStrategy):
 		self.__emailaddress: str = ""
 		self.__passwordtoken: str = ""
 		self._verified: bool = False
+		self._balance: float = 0
+
+	@property
+	def balance(self) -> float:
+		"""
+		Get the current balance available on the PayPal account.
+
+		Returns:
+			float: The current balance amount.
+		"""
+		return self._balance
+	
+	@balance.setter
+	def balance(self, value: float) -> None:
+		"""
+		Set the balance available on the PayPal account.
+
+		Args:
+			value (float): The balance amount to set.
+
+		Raises:
+			ValidationError: If the balance value is negative.
+		"""
+		if value < 0:
+			raise ValidationError("ValidationError", "Balance cannot be negative")
+		self._balance = value
 
 	@property
 	def emailaddress(self) -> str:
@@ -104,34 +130,33 @@ class Paypal(PaymentStrategy):
 			value (bool): The verification status (True for verified, False otherwise).
 
 		Raises:
-			ValueError: If the value is not a boolean.
+			ValidationError: If the value is not a boolean.
 		"""
 		if not isinstance(value, bool):
-			raise ValueError("ValueError", "Verified should be True or False")
+			raise ValidationError("ValidationError", "Verified must be a boolean value")
 		self._verified = value
 
 	def validate(self) -> bool:
 		"""
 		Validate PayPal account information before processing payment.
 
-		Performs comprehensive validation including:
-		- Email address format
-		- Password strength requirements
-		- Account verification status type
+		Checks that all required fields are populated. Individual field validation
+		is already performed by property setters.
 
 		Returns:
-			bool: True if all validations pass (implicitly through no exceptions).
+			bool: True if all validations pass.
 
 		Raises:
-			ValidationError: If email format or password strength is invalid.
-			ValueError: If verification status is not a boolean.
+			ValidationError: If any required field is empty.
+
+		Note:
+			Format validation for email and password strength is handled
+			automatically by their respective property setters.
 		"""
-		if not self.check_email(self.emailaddress):
-			raise ValidationError("ValidationError", "Email format is invalid")
-		if not self.check_password(self.passwordtoken):
-			raise ValidationError("ValidationError", "Password is not strong")
-		if not self.check_verified(self.verified):
-			raise ValueError("ValueError", "Verified should be True or False")
+		if not self.emailaddress:
+			raise ValidationError("ValidationError", "Email address is required")
+		if not self.passwordtoken:
+			raise ValidationError("ValidationError", "Password/token is required")
 		return True
 
 	def execute(self, amount: float) -> dict:
@@ -145,12 +170,20 @@ class Paypal(PaymentStrategy):
 			dict: Transaction details including status, transaction ID, timestamp, and amount.
 
 		Raises:
-			PaymentError: If the payment processing fails.
+			PaymentError: If the payment processing fails due to insufficient balance or unverified account.
 			ValidationError: If validation fails before processing.
 		"""
-		pass
+		if not self.verified:
+			self.status = "Failed"
+			raise PaymentError("PaymentError", "Account not verified")
+		if amount > self.balance:
+			self.status = "Failed"
+			raise PaymentError("PaymentError", "Insufficient balance")
+		self.status = "Success"
+		self.balance -= amount
+		return self.generate_receipt(amount)
 
-	def generate_receipt(self) -> dict:
+	def generate_receipt(self, amount: float) -> dict:
 		"""
 		Generate a payment receipt with transaction details.
 
@@ -164,7 +197,14 @@ class Paypal(PaymentStrategy):
 				- Transaction status
 				- Verification status
 		"""
-		pass
+		receipt = {}
+		receipt["TransactionID"] = self.transaction_id
+		receipt["PaymentMethod"] = "PayPal"
+		receipt["EmailAddress"] = self.emailaddress
+		receipt["Amount"] = amount
+		receipt["Timestamp"] = self.timestamp
+		receipt["Transaction status"] = self.status
+		return receipt
 
 	def check_email(self, value: str) -> bool:
 		"""
@@ -178,7 +218,7 @@ class Paypal(PaymentStrategy):
 		Returns:
 			bool: True if email format is valid, False otherwise.
 		"""
-		return re.fullmatch("^[\w\.-]+@[\w\.-]+\.\w{2,}$", value) is not None
+		return re.fullmatch(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", value) is not None
 
 	def check_password(self, value: str) -> bool:
 		"""
@@ -195,7 +235,7 @@ class Paypal(PaymentStrategy):
 		Returns:
 			bool: True if password meets strength requirements, False otherwise.
 		"""
-		return re.fullmatch("^(?=.*[A-Za-z])(?=.*\d).{8,}$", value) is not None
+		return re.fullmatch(r"(?=.*[A-Za-z])(?=.*\d).{8,}", value) is not None
 
 	def check_verified(self, value) -> bool:
 		"""
