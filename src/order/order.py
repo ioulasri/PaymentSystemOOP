@@ -2,12 +2,16 @@ from datetime import datetime
 from typing import List
 import sys
 from pathlib import Path
-from payment.exceptions import *
-from customer.customer import Customer
-from item.item import Item
 import uuid
 
-sys.path.append(str(Path(__file__).parent.parent))
+# Add project root to path for absolute imports
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from src.payment.exceptions import *
+from src.user.customer import Customer
+from src.order.item import Item
 
 class Order:
 	"""
@@ -65,7 +69,7 @@ class Order:
 	@status.setter
 	def status(self, value: str) -> None:
 		if value not in Order.VALID_STATUSES:
-			raise ValueError(f"Invalid status. Must be one of: {Order.VALID_STATUSES}")
+			raise ValueError("ValueError", f"Invalid status. Must be one of: {Order.VALID_STATUSES}")
 		self._status = value
 
 	def add_item(self, item: Item) -> None:
@@ -90,10 +94,11 @@ class Order:
 		"""
 		if self.status in ["shipped", "delivered", "cancelled"]:
 			raise OrderError("OrderError", "Cannot modify completed/cancelled orders.")
-		if item.quantity <= 0:
-			raise ValueError("ItemError", "Quantity should be 1 or more")
+		# Validate item type and stock first
 		if not self.valid_item(item):
 			raise OrderError("OrderError", "Invalid Item")
+		if item.quantity <= 0:
+			raise ValueError("ItemError", "Quantity should be 1 or more")
 		self.items.append(item)
 		self.total_amount += item.quantity * (item.price - item.price * item.discount)
 
@@ -172,7 +177,7 @@ class Order:
 		return len(self.items) == 0
 	
 	def __repr__(self) -> str:
-		return f"Order(id={self.order_id}, customer={self.customer.name}, items={len(self.items)}, total={self.total_amount:.2f})"
+		return f"Order(id={self.order_id}, customer={self.customer._name}, items={len(self.items)}, total={self.total_amount:.2f})"
 
 	def __str__(self) -> str:
 		return f"Order {self.order_id}: {len(self.items)} items, Total: ${self.total_amount:.2f}"
