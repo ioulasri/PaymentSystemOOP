@@ -14,6 +14,7 @@ class CreditCardPayment(PaymentStrategy):
 			expiration_date (str): The card expiration date in MM/YY format.
 			cvv (str): The card verification value, typically 3-4 digits.
 		"""
+		super().__init__()
 		self._card_holder: str = ""
 		self._balance = 0.0
 		self.__card_number: str = ""
@@ -39,10 +40,10 @@ class CreditCardPayment(PaymentStrategy):
 			value (float): The balance amount to set.
 
 		Raises:
-			ValueError: If the balance value is negative.
+			ValidationError: If the balance value is negative.
 		"""
 		if value < 0:
-			raise ValueError("Balance cannot be negative.")
+			raise ValidationError("ValidationError", "Balance cannot be negative")
 		self._balance = value
 
 	@property
@@ -72,10 +73,10 @@ class CreditCardPayment(PaymentStrategy):
 		try:
 			prefix, firstname, lastname = value.split(" ")
 			if not firstname or not lastname or not prefix:
-				raise ValidationError("ValidationError", "Cardholder should follow this format: Mr(s) -- --")
+				raise ValidationError("ValidationError", "Cardholder should follow format: Prefix Firstname Lastname")
 			self._card_holder = value
 		except ValueError:
-			raise ValidationError("ValidationError", "Cardholder should follow this format: Mr(s) Firstname Lastname")
+			raise ValidationError("ValidationError", "Cardholder should follow format: Prefix Firstname Lastname")
 
 	@property
 	def cardnumber(self) -> str:
@@ -209,13 +210,19 @@ class CreditCardPayment(PaymentStrategy):
 			ValidationError: If validation fails before processing.
 		"""
 		if amount > self.balance:
-			raise PaymentError("Insufficient balance")
-		pass
+			self.status = "Failed"
+			raise PaymentError("PaymentError", "Insufficient balance")
+		self.status = "Success"
+		self.balance -= amount
+		return self.generate_receipt(amount)
 
 
-	def generate_receipt(self) -> dict:
+	def generate_receipt(self, amount: float) -> dict:
 		"""
 		Generate a payment receipt with transaction details.
+
+		Args:
+			amount (float): The payment amount for the receipt.
 
 		Returns:
 			dict: Receipt information containing:
@@ -227,7 +234,15 @@ class CreditCardPayment(PaymentStrategy):
 				- Timestamp
 				- Transaction status
 		"""
-		pass
+		receipt = {}
+		receipt["TransactionID"] = self.transaction_id
+		receipt["PaymentMethod"] = "Credit Card"
+		receipt["CardNumber"] = self.masked_card(self.cardnumber)
+		receipt["CardHolder"] = self.cardholder
+		receipt["Amount"] = amount
+		receipt["Timestamp"] = self.timestamp
+		receipt["Transaction status"] = self.status
+		return receipt
 
 	def check_cardnumber(self, card_number: str) -> bool:
 		"""
@@ -249,9 +264,9 @@ class CreditCardPayment(PaymentStrategy):
 			expiration_date (str): The expiration date to validate.
 
 		Returns:
-			bool: True if format is MM/YY, False otherwise.
+			bool: True if format is MM-YY, False otherwise.
 		"""
-		return re.fullmatch(r"^\d{2}-\d{2}$", expiration_date)
+		return re.fullmatch(r"\d{2}-\d{2}", expiration_date) is not None
 
 	def check_expirationdate(self, expiration_date: str) -> bool:
 		"""
@@ -262,12 +277,15 @@ class CreditCardPayment(PaymentStrategy):
 
 		Returns:
 			bool: True if date is current or future, False if expired.
+
+		Note:
+			Cards are valid through the end of the expiration month.
 		"""
 		month, year = expiration_date.split('-')
 		full_year = 2000 + int(year)
-		expired_date = date(full_year, int(month), 1)
 		current_date = date.today()
-		return current_date < expired_date
+		return (current_date.year < full_year or 
+				(current_date.year == full_year and current_date.month <= int(month)))
 
 	def check_cvv(self, cvv: str) -> bool:
 		"""
@@ -280,3 +298,26 @@ class CreditCardPayment(PaymentStrategy):
 			bool: True if CVV is 3-4 digits, False otherwise.
 		"""
 		return cvv.isdigit() and (len(cvv) == 3 or len(cvv) == 4)
+
+	def masked_card(self, card_number: str) -> str:
+		"""
+		Mask a card number showing only the last 4 digits.
+
+		Args:
+			card_number (str): The card number to mask.
+
+		Returns:
+			str: Masked card number with first 12 digits replaced by asterisks.
+		"""
+		masked = ''
+		digit_index = 0
+		for c in card_number:
+			if c.isdigit():
+				if digit_index < 12:
+					masked += '*'
+				else:
+					masked += c
+				digit_index += 1
+			else:
+				masked += c
+		return masked
