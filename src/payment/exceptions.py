@@ -24,3 +24,16 @@ class ValueError(ProjectError):
 
 	def __init__(self, message, field=None):
 		super().__init__(message, field)
+
+class OrderError(ProjectError):
+	"""Raised when order fails"""
+
+	def __init__(self, message, field=None):
+		super().__init__(message, field)
+
+class TypeError(ProjectError):
+	"""Raised when type error"""
+
+	def __init__(self, message, field=None):
+		super().__init__(message, field)
+
