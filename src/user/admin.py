@@ -14,6 +14,7 @@ backing stores and tie actions to real transaction services.
 from typing import Any, Dict, List, Optional
 
 from .user import User
+from uuid import uuid4
 
 
 class Admin(User):
@@ -45,7 +46,7 @@ class Admin(User):
         permissions: Optional[List[str]] = None,
     ):
         super().__init__()
-        self._user_id = user_id
+        self._user_id = f"ADM-{uuid4()}"
         self._name = name
         self._email = email
         self._permissions: List[str] = permissions or []
