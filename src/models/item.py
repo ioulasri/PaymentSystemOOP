@@ -1,3 +1,6 @@
+from src.core.exceptions import ProjectValueError
+
+
 class Item:
 	"""
 	Represents an item in the inventory/order system.
