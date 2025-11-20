@@ -12,7 +12,7 @@
 
 ## 🚀 Project Overview
 
-This project implements a comprehensive Object-Oriented Payment System in Python with enterprise-level testing infrastructure, automated CI/CD pipelines, and professional development workflows. 
+This project implements a comprehensive Object-Oriented Payment System in Python with enterprise-level testing infrastructure, automated CI/CD pipelines, and professional development workflows.
 
 **Developed collaboratively by [ioulasri](https://github.com/ioulasri) and [hamzaouadia](https://github.com/hamzaouadia)** - both contributors worked together on all aspects of the system, from architecture and implementation to testing and DevOps infrastructure.
 

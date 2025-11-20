@@ -57,10 +57,10 @@ class User(ABC):
         """
         super().__init__()
         self._user_id: str
-        self._name: str 
+        self._name: str
         self._email: str
         self._created_at: date = date.today()
-        self._role: str 
+        self._role: str
         self._is_active: bool
 
     @abstractmethod

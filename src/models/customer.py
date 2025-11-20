@@ -13,10 +13,10 @@ and local runs. In production you'd replace wallet objects with proper
 services or adapters and persist transaction history to a database.
 """
 
-from typing import Any, Dict, List
-from uuid import uuid4
 import sys
 from pathlib import Path
+from typing import Any, Dict, List
+from uuid import uuid4
 
 # Add parent directory to path to enable imports
 project_root = Path(__file__).parent.parent.parent
