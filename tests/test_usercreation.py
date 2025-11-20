@@ -11,17 +11,17 @@ from src.user.admin import Admin
 
 class TestCustomerModel(unittest.TestCase):
     def test_creation_and_info(self):
-        c = Customer('u1', 'Alice', 'alice@example.com')
-        self.assertEqual(c._user_id, 'u1')
+        c = Customer('Alice', 'alice@example.com')
+        self.assertTrue(c._user_id.startswith('USR-'))
         info = c.get_user_info()
-        self.assertEqual(info['id'], 'u1')
+        self.assertEqual(info['id'], c._user_id)
         self.assertEqual(info['name'], 'Alice')
         self.assertEqual(info['email'], 'alice@example.com')
         self.assertEqual(info['role'], 'customer')
         self.assertTrue(info['is_active'])
 
     def test_wallet_and_payment(self):
-        c = Customer('u2', 'Bob', 'bob@example.com')
+        c = Customer('Bob', 'bob@example.com')
         # no saved methods => initiating should raise
         with self.assertRaises(ValueError):
             c.initiate_payment(10.0, 'card-x')
@@ -35,7 +35,7 @@ class TestCustomerModel(unittest.TestCase):
         self.assertAlmostEqual(c.view_balance(), 70.0)
 
     def test_transaction_history_appended(self):
-        c = Customer('u3', 'Carol', 'carol@example.com')
+        c = Customer('Carol', 'carol@example.com')
         c.save_payment_method('m1')
         c._wallets['m1'] = 50.0
         txn = c.initiate_payment(5.0, 'm1')
@@ -48,7 +48,7 @@ class TestAdminModel(unittest.TestCase):
     def test_admin_workflow(self):
         a = Admin('adm1', 'Dana', 'dana@example.com', permissions=['approve_transactions'])
         info = a.get_user_info()
-        self.assertEqual(info['id'], 'adm1')
+        self.assertTrue(info['id'].startswith('ADM-'))  # UUID format
         self.assertIn('approve_transactions', info['permissions'])
 
         # add a transaction to the review queue
