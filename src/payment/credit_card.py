@@ -70,13 +70,13 @@ class CreditCardPayment(PaymentStrategy):
 		Raises:
 			ValidationError: If the name doesn't follow the required format or any component is missing.
 		"""
-		try:
-			prefix, firstname, lastname = value.split(" ")
-			if not firstname or not lastname or not prefix:
-				raise ValidationError("ValidationError", "Cardholder should follow format: Prefix Firstname Lastname")
-			self._card_holder = value
-		except ValueError:
+		parts = value.split(" ")
+		if len(parts) != 3:
 			raise ValidationError("ValidationError", "Cardholder should follow format: Prefix Firstname Lastname")
+		prefix, firstname, lastname = parts
+		if not firstname or not lastname or not prefix:
+			raise ValidationError("ValidationError", "Cardholder should follow format: Prefix Firstname Lastname")
+		self._card_holder = value
 
 	@property
 	def cardnumber(self) -> str:

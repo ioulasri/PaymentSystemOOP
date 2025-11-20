@@ -233,12 +233,11 @@ class TestBalanceProperty(TestCreditCardPayment):
 		self.assertEqual(self.payment.balance, 250.75)
 
 	def test_balance_setter_negative_value(self):
-		"""Test that balance setter raises ValueError for negative values."""
-		with self.assertRaises(Exception) as context:
+		"""Test that balance setter raises ValidationError for negative values."""
+		with self.assertRaises(ValidationError) as context:
 			self.payment.balance = -100.0
-		# Check either the str representation or the message attribute
-		error_text = str(context.exception) if str(context.exception) else getattr(context.exception, 'message', '')
-		self.assertIn("Balance cannot be negative", error_text)
+		self.assertEqual(context.exception.message, "ValidationError")
+		self.assertEqual(context.exception.field, "Balance cannot be negative")
 
 
 class TestCardholderProperty(TestCreditCardPayment):
@@ -265,24 +264,21 @@ class TestCardholderProperty(TestCreditCardPayment):
 
 	def test_cardholder_setter_invalid_no_prefix(self):
 		"""Test that cardholder setter raises ValidationError without prefix."""
-		try:
+		with self.assertRaises(ValidationError) as context:
 			self.payment.cardholder = "John Doe"
-			self.fail("Should have raised ValidationError")
-		except (ValidationError, ValueError):
-			pass  # Either exception is acceptable
+		self.assertIn("Cardholder should follow format", context.exception.field)
 
 	def test_cardholder_setter_invalid_no_lastname(self):
 		"""Test that cardholder setter raises ValidationError without lastname."""
-		try:
+		with self.assertRaises(ValidationError) as context:
 			self.payment.cardholder = "Mr John"
-			self.fail("Should have raised ValidationError")
-		except (ValidationError, ValueError):
-			pass  # Either exception is acceptable
+		self.assertIn("Cardholder should follow format", context.exception.field)
 
 	def test_cardholder_setter_invalid_single_word(self):
 		"""Test that cardholder setter raises ValidationError with single word."""
-		with self.assertRaises(ValueError):
+		with self.assertRaises(ValidationError) as context:
 			self.payment.cardholder = "John"
+		self.assertIn("Cardholder should follow format", context.exception.field)
 
 
 class TestCardnumberProperty(TestCreditCardPayment):
