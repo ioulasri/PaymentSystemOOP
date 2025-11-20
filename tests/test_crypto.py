@@ -12,13 +12,13 @@ class TestCryptoPayment(unittest.TestCase):
     def test_validate_and_set_wallet(self):
         cp = CryptoPayment()
         self.assertFalse(cp.validate())
-        cp.set_wallet('0xdeadbeef', 'testnet')
+        cp.set_wallet('0xdeadbeefcafebabedeadbeefcafebabedeadbeef', 'ethereum')
         self.assertTrue(cp.validate())
         print('\n[DEBUG] wallet_info =', cp.get_wallet_info())
 
     def test_execute_invalid_amounts(self):
         cp = CryptoPayment()
-        cp.set_wallet('0xabc', 'testnet')
+        cp.set_wallet('0xabcdefabcdefabcdefabcdefabcdefabcdefabcd', 'ethereum')
 
         res_none = cp.execute(None)
         print('\n[DEBUG] execute(None) =>', res_none)
@@ -30,7 +30,7 @@ class TestCryptoPayment(unittest.TestCase):
 
     def test_execute_success_and_receipt(self):
         cp = CryptoPayment()
-        cp.set_wallet('0x123', 'mainnet')
+        cp.set_wallet('0x1234567890123456789012345678901234567890', 'ethereum')
         txn = cp.execute(100.0)
         print('\n[DEBUG] execute(100.0) =>', txn)
         self.assertEqual(txn.get('status'), 'completed')
@@ -42,7 +42,7 @@ class TestCryptoPayment(unittest.TestCase):
 
     def test_fee_convert_track_refund(self):
         cp = CryptoPayment()
-        cp.set_wallet('0xfeedface', 'testnet')
+        cp.set_wallet('0xfeedfacecafebabedeadbeefcafebabedeadbeef', 'ethereum')
         fee = cp.estimate_fees(200.0)
         converted = cp.convert_currency(200.0, 'USD', 'BTC')
         txn = cp.execute(200.0)
@@ -60,7 +60,7 @@ class TestCryptoPayment(unittest.TestCase):
         self.assertEqual(refund.get('status'), 'refunded')
     def test_misc_helpers(self):
         cp = CryptoPayment()
-        cp.set_wallet('0x1', 'testnet')
+        cp.set_wallet('0x1111111111111111111111111111111111111111', 'ethereum')
 
         inv = cp.generate_invoice(123.45, '2025-12-31')
         self.assertIn('invoice_id', inv)
@@ -82,3 +82,24 @@ class TestCryptoPayment(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+class TestCryptoValidation(unittest.TestCase):
+    def test_address_validation(self):
+        """Test address validation for different formats."""
+        cp = CryptoPayment()
+        
+        # Valid Ethereum address should work
+        cp.set_wallet('0x1234567890123456789012345678901234567890', 'ethereum')
+        self.assertTrue(cp.validate())
+        
+        # Invalid Ethereum address should fail
+        with self.assertRaises(ValueError):
+            cp.set_wallet('0x123', 'ethereum')  # Too short
+            
+        # Bitcoin testnet address (using generic validation for now)
+        cp.set_wallet('1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', 'bitcoin')
+        self.assertTrue(cp.validate())
+        
+        # Test fallback validation for unknown networks
+        cp.set_wallet('some-valid-looking-address-12345', 'unknown-network')
+        self.assertTrue(cp.validate())
