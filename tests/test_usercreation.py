@@ -12,10 +12,7 @@ from src.user.admin import Admin
 class TestCustomerModel(unittest.TestCase):
     def test_creation_and_info(self):
         c = Customer('Alice', 'alice@example.com')
-<<<<<<< HEAD
         self.assertIsNotNone(c._user_id)
-=======
->>>>>>> 1c2fdba2a34f0176b5ea059b68fd2524592acc2b
         self.assertTrue(c._user_id.startswith('USR-'))
         info = c.get_user_info()
         self.assertEqual(info['id'], c._user_id)
@@ -52,12 +49,8 @@ class TestAdminModel(unittest.TestCase):
     def test_admin_workflow(self):
         a = Admin('Dana', 'dana@example.com', permissions=['approve_transactions'])
         info = a.get_user_info()
-<<<<<<< HEAD
         self.assertIsNotNone(info['id'])
         self.assertTrue(info['id'].startswith('ADM-'))
-=======
-        self.assertTrue(info['id'].startswith('ADM-'))  # UUID format
->>>>>>> 1c2fdba2a34f0176b5ea059b68fd2524592acc2b
         self.assertIn('approve_transactions', info['permissions'])
 
         # add a transaction to the review queue
