@@ -1,0 +1,37 @@
+# Code Owners for PaymentSystemOOP
+# This file defines who should be automatically requested for review
+# when changes are made to specific parts of the codebase
+
+# Global owners (will be requested for all changes)
+* @ioulasri @hamzaouadia
+
+# Source code
+/src/ @ioulasri @hamzaouadia
+
+# Payment module - requires payment system expertise
+/src/payment/ @ioulasri
+
+# Order management - business logic critical
+/src/order/ @ioulasri
+
+# User management - security critical
+/src/user/ @hamzaouadia
+
+# Tests - quality assurance critical
+/tests/ @ioulasri @hamzaouadia
+
+# CI/CD and workflows - DevOps expertise
+/.github/ @hamzaouadia @ioulasri
+/test_runner.py @hamzaouadia @ioulasri
+/run_tests.sh @hamzaouadia @ioulasri
+
+# Documentation
+/README.md @ioulasri @hamzaouadia
+/TEST_RUNNER_README.md @hamzaouadia @ioulasri
+/docs/ @ioulasri @hamzaouadia
+
+# Configuration files
+/requirements*.txt @hamzaouadia @ioulasri
+/pyproject.toml @hamzaouadia @ioulasri
+/setup.py @hamzaouadia @ioulasri
+/.gitignore @hamzaouadia @ioulasri
