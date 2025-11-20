@@ -16,15 +16,15 @@ import unittest
 from datetime import datetime
 from pathlib import Path
 
-# Add project root to path for absolute imports
-project_root = Path(__file__).parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
-
 from src.core.exceptions import OrderError, ProjectTypeError, ProjectValueError
 from src.models.customer import Customer
 from src.models.item import Item
 from src.models.order import Order
+
+# Add project root to path for absolute imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 
 class TestOrderInitialization(unittest.TestCase):

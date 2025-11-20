@@ -18,12 +18,12 @@ from pathlib import Path
 from typing import Any, Dict, List
 from uuid import uuid4
 
+from src.models.user import User
+
 # Add parent directory to path to enable imports
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
-
-from src.models.user import User
 
 
 class Customer(User):

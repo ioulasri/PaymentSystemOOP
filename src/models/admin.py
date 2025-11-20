@@ -92,7 +92,10 @@ class Admin(User):
         return None
 
     def approve_transaction(self, transaction_id: str) -> bool:
-        """Approve a queued transaction, record it in the audit log, return True on success."""
+        """
+        Approve a queued transaction, record it in the audit log,
+        return True on success.
+        """
 
         for idx, txn in enumerate(self._review_queue):
             if txn.get("id") == transaction_id:
@@ -104,7 +107,10 @@ class Admin(User):
         return False
 
     def reject_transaction(self, transaction_id: str) -> bool:
-        """Reject a queued transaction, record it in the audit log, return True on success."""
+        """
+        Reject a queued transaction, record it in the audit log,
+        return True on success.
+        """
         for idx, txn in enumerate(self._review_queue):
             if txn.get("id") == transaction_id:
                 record = dict(txn)

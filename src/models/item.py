@@ -12,11 +12,15 @@ class Item:
 
     Attributes:
             name (str): The name of the item.
-            id (str): Unique identifier for the item (auto-generated, format: ITEM-UUID).
+            id (str): Unique identifier for the item (auto-generated,
+                format: ITEM-UUID).
             price (float): The price of the item (must be positive).
-            stock (int): The quantity available in stock (must be non-negative).
-            discount (float): Discount percentage as a decimal (0.0 to 1.0).
-            quantity (int): The quantity of this item per order (must be positive, default is 1).
+            stock (int): The quantity available in stock (must be
+                non-negative).
+            discount (float): Discount percentage as a decimal
+                (0.0 to 1.0).
+            quantity (int): The quantity of this item per order (must be
+                positive, default is 1).
     """
 
     def __init__(self, name: str):
@@ -124,7 +128,8 @@ class Item:
         Get the discount percentage.
 
         Returns:
-                float: The discount as a decimal (0.0 = no discount, 1.0 = 100% discount).
+                float: The discount as a decimal (0.0 = no discount,
+                    1.0 = 100% discount).
         """
         return self._discount
 

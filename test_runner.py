@@ -23,7 +23,6 @@ Date: November 2025
 """
 
 import argparse
-import os
 import re
 import subprocess
 import sys
@@ -197,7 +196,7 @@ class TestRunner:
 
         if coverage:
             try:
-                import pytest_cov
+                import pytest_cov  # noqa: F401
 
                 cmd.extend(["--cov=src", "--cov-report=term-missing"])
             except ImportError:
@@ -313,7 +312,10 @@ class TestRunner:
                             else "💥"
                         )
                     )
-                    content += f"{status_emoji} {test['class']}::{test['method']} {test['percentage']}\n"
+                    content += (
+                        f"{status_emoji} {test['class']}::{test['method']} "
+                        f"{test['percentage']}\n"
+                    )
                 content += "\n"
 
         self._save_file(filename, content)
@@ -407,7 +409,10 @@ class TestRunner:
                     display_name = (
                         file_name[:25] + "..." if len(file_name) > 28 else file_name
                     )
-                    summary += f"│ {status_icon} {display_name:<30} {file_passed:>3}/{file_total:<3} ({file_pass_rate:>5.1f}%) │\n"
+                    summary += (
+                        f"│ {status_icon} {display_name:<30} {file_passed:>3}/"
+                        f"{file_total:<3} ({file_pass_rate:>5.1f}%) │\n"
+                    )
         else:
             summary += (
                 "│ No test files found                                         │\n"

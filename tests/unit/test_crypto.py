@@ -2,10 +2,10 @@ import os
 import sys
 import unittest
 
+from src.payment.methods.crypto import CryptoPayment
+
 # ensure project src is importable
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from src.payment.methods.crypto import CryptoPayment
 
 
 class TestCryptoPayment(unittest.TestCase):

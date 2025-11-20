@@ -2,12 +2,11 @@ import os
 import sys
 import unittest
 
-# Add parent directory to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from src.core.exceptions import ProjectValueError as CustomValueError
 from src.core.exceptions import ValidationError
 from src.payment.methods.paypal import Paypal
+
+# Add parent directory to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 class TestPaypalPayment(unittest.TestCase):

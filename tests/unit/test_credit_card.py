@@ -1,15 +1,12 @@
 import os
 import sys
 import unittest
-from datetime import date
-
-# Add parent directory to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from datetime import date
 
 from src.core.exceptions import ValidationError
 from src.payment.methods.credit_card import CreditCardPayment
+
+# Add parent directory to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 class TestCreditCardPayment(unittest.TestCase):

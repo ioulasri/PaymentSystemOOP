@@ -4,14 +4,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import List
 
+from src.core.exceptions import OrderError, ProjectTypeError, ProjectValueError
+from src.models.customer import Customer
+from src.models.item import Item
+
 # Add project root to path for absolute imports
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
-
-from src.core.exceptions import *
-from src.models.customer import Customer
-from src.models.item import Item
 
 
 class Order:
@@ -25,7 +25,8 @@ class Order:
             order_id (str): Unique identifier for the order.
             customer (Customer): The customer who placed the order.
             items (List[Item]): List of items included in the order.
-            total_amount (float): Total cost of the order (auto-calculated by add_item/remove_item).
+            total_amount (float): Total cost of the order
+                (auto-calculated by add_item/remove_item).
             status (str): Current order status (default: "pending").
             created_at (datetime): Timestamp when the order was created.
             payment_method (str): Payment method used for the order.
@@ -171,7 +172,8 @@ class Order:
                 float: The total amount after applying all discounts.
 
         Note:
-                This method recalculates from scratch using all items currently in the order.
+                This method recalculates from scratch using all items
+                currently in the order.
                 Useful for verification or after bulk modifications.
         """
         self.total_amount = sum(
@@ -189,7 +191,13 @@ class Order:
         return len(self.items) == 0
 
     def __repr__(self) -> str:
-        return f"Order(id={self.order_id}, customer={self.customer._name}, items={len(self.items)}, total={self.total_amount:.2f})"
+        return (
+            f"Order(id={self.order_id}, customer={self.customer._name}, "
+            f"items={len(self.items)}, total={self.total_amount:.2f})"
+        )
 
     def __str__(self) -> str:
-        return f"Order {self.order_id}: {len(self.items)} items, Total: ${self.total_amount:.2f}"
+        return (
+            f"Order {self.order_id}: {len(self.items)} items, "
+            f"Total: ${self.total_amount:.2f}"
+        )

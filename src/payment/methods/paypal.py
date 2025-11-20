@@ -1,8 +1,7 @@
 import re
-from datetime import date
 
 from src.core.base import PaymentStrategy
-from src.core.exceptions import *
+from src.core.exceptions import PaymentError, ProjectValueError, ValidationError
 
 
 class Paypal(PaymentStrategy):
@@ -129,7 +128,8 @@ class Paypal(PaymentStrategy):
         Set the PayPal account verification status.
 
         Args:
-                value (bool): The verification status (True for verified, False otherwise).
+                value (bool): The verification status (True for verified,
+                    False otherwise).
 
         Raises:
                 ValidationError: If the value is not a boolean.
@@ -168,13 +168,16 @@ class Paypal(PaymentStrategy):
         Process the PayPal payment transaction.
 
         Args:
-                amount (float): The payment amount to charge to the PayPal account.
+                amount (float): The payment amount to charge to the
+                    PayPal account.
 
         Returns:
-                dict: Transaction details including status, transaction ID, timestamp, and amount.
+                dict: Transaction details including status, transaction ID,
+                    timestamp, and amount.
 
         Raises:
-                PaymentError: If the payment processing fails due to insufficient balance or unverified account.
+                PaymentError: If the payment processing fails due to
+                    insufficient balance or unverified account.
                 ValidationError: If validation fails before processing.
         """
         if not self.verified:

@@ -79,7 +79,8 @@ class CryptoPayment(PaymentStrategy):
 
         # Bitcoin-like addresses (legacy, segwit, bech32)
         if network in ["bitcoin", "btc", "testnet"]:
-            # Legacy: 1... (25-34 chars), Segwit: 3... (25-34 chars), Bech32: bc1... (42-62 chars)
+            # Legacy: 1... (25-34 chars), Segwit: 3... (25-34 chars),
+            # Bech32: bc1... (42-62 chars)
             pattern = r"^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-z0-9]{39,59}$"
             return bool(re.match(pattern, address))
 
