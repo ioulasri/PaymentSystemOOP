@@ -32,7 +32,7 @@ class TestOrderInitialization(unittest.TestCase):
 
 	def setUp(self):
 		"""Create a customer for testing."""
-		self.customer = Customer("C001", "John Doe", "john@example.com")
+		self.customer = Customer("John Doe", "john@example.com")
 
 	def test_order_creation_with_customer(self):
 		"""Test that an order can be created with a customer."""
@@ -91,7 +91,7 @@ class TestOrderStatusProperty(unittest.TestCase):
 
 	def setUp(self):
 		"""Create an order for testing."""
-		self.customer = Customer("C001", "Jane Doe", "jane@example.com")
+		self.customer = Customer("Jane Doe", "jane@example.com")
 		self.order = Order(self.customer)
 
 	def test_valid_status_pending(self):
@@ -151,7 +151,7 @@ class TestAddItemMethod(unittest.TestCase):
 
 	def setUp(self):
 		"""Create order and items for testing."""
-		self.customer = Customer("C001", "Alice", "alice@example.com")
+		self.customer = Customer("Alice", "alice@example.com")
 		self.order = Order(self.customer)
 		
 		self.item1 = Item("Laptop")
@@ -296,7 +296,7 @@ class TestValidItemMethod(unittest.TestCase):
 
 	def setUp(self):
 		"""Create order and items for testing."""
-		self.customer = Customer("C001", "Bob", "bob@example.com")
+		self.customer = Customer("Bob", "bob@example.com")
 		self.order = Order(self.customer)
 		
 		self.valid_item = Item("Valid Item")
@@ -347,7 +347,7 @@ class TestRemoveItemMethod(unittest.TestCase):
 
 	def setUp(self):
 		"""Create order with items for testing."""
-		self.customer = Customer("C001", "Charlie", "charlie@example.com")
+		self.customer = Customer("Charlie", "charlie@example.com")
 		self.order = Order(self.customer)
 		
 		self.item1 = Item("Item 1")
@@ -460,7 +460,7 @@ class TestCalculateTotalMethod(unittest.TestCase):
 
 	def setUp(self):
 		"""Create order with items for testing."""
-		self.customer = Customer("C001", "Diana", "diana@example.com")
+		self.customer = Customer("Diana", "diana@example.com")
 		self.order = Order(self.customer)
 
 	def test_calculate_total_empty_order(self):
@@ -576,7 +576,7 @@ class TestUtilityMethods(unittest.TestCase):
 
 	def setUp(self):
 		"""Create order for testing."""
-		self.customer = Customer("C001", "Eve", "eve@example.com")
+		self.customer = Customer("Eve", "eve@example.com")
 		self.order = Order(self.customer)
 
 	def test_is_empty_true_for_new_order(self):
@@ -657,7 +657,7 @@ class TestStringRepresentations(unittest.TestCase):
 
 	def setUp(self):
 		"""Create order for testing."""
-		self.customer = Customer("C001", "Frank", "frank@example.com")
+		self.customer = Customer("Frank", "frank@example.com")
 		self.order = Order(self.customer)
 
 	def test_repr_contains_order_id(self):
@@ -733,7 +733,7 @@ class TestOrderIntegration(unittest.TestCase):
 
 	def setUp(self):
 		"""Create order with various items for testing."""
-		self.customer = Customer("C001", "Grace", "grace@example.com")
+		self.customer = Customer("Grace", "grace@example.com")
 		self.order = Order(self.customer)
 
 	def test_complete_order_workflow(self):
