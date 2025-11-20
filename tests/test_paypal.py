@@ -249,31 +249,31 @@ class TestVerifiedProperty(TestPaypalPayment):
 		"""Test that verified setter raises error for string value."""
 		try:
 			self.payment.verified = "True"
-			self.fail("Should have raised ValueError")
+			self.fail("Should have raised ValidationError")
 		except Exception as e:
 			# Check either the str representation or the message attribute
 			error_text = str(e) if str(e) else getattr(e, 'message', '')
-			self.assertIn("Verified should be", error_text)
+			self.assertIn("Verified must be", error_text)
 
 	def test_verified_setter_invalid_integer(self):
 		"""Test that verified setter raises error for integer value."""
 		try:
 			self.payment.verified = 1
-			self.fail("Should have raised ValueError")
+			self.fail("Should have raised ValidationError")
 		except Exception as e:
 			# Check either the str representation or the message attribute
 			error_text = str(e) if str(e) else getattr(e, 'message', '')
-			self.assertIn("Verified should be", error_text)
+			self.assertIn("Verified must be", error_text)
 
 	def test_verified_setter_invalid_none(self):
 		"""Test that verified setter raises error for None value."""
 		try:
 			self.payment.verified = None
-			self.fail("Should have raised ValueError")
+			self.fail("Should have raised ValidationError")
 		except Exception as e:
 			# Check either the str representation or the message attribute
 			error_text = str(e) if str(e) else getattr(e, 'message', '')
-			self.assertIn("Verified should be", error_text)
+			self.assertIn("Verified must be", error_text)
 
 
 class TestValidateMethod(TestPaypalPayment):
@@ -323,7 +323,7 @@ class TestValidateMethod(TestPaypalPayment):
 		except Exception as e:
 			# Check either the str representation or the message attribute
 			error_text = str(e) if str(e) else getattr(e, 'message', '')
-			self.assertIn("Verified", error_text)
+			self.assertIn("Verified should be", error_text)
 
 	def test_validate_empty_email(self):
 		"""Test that validate raises ValidationError for empty email."""
