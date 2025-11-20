@@ -12,7 +12,14 @@ from .payment_strategy import PaymentStrategy
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 from datetime import datetime
+import re
 
+# Optional import for enhanced crypto address validation
+try:
+    import coinaddrvalidator
+    HAS_COINADDR_VALIDATOR = True
+except ImportError:
+    HAS_COINADDR_VALIDATOR = False
 
 class CryptoPayment(PaymentStrategy):
     """PaymentStrategy implementation for crypto payments.
@@ -42,9 +49,47 @@ class CryptoPayment(PaymentStrategy):
         bool
             True when the strategy is configured (has wallet address and
             network). This simple implementation requires both values to
-            be present.
+            be present and validates address format when possible.
         """
-        return bool(self._wallet_address and self._network)
+        # Basic checks first
+        if not (self._wallet_address and self._network):
+            return False
+            
+        # Enhanced validation if coinaddrvalidator is available
+        if HAS_COINADDR_VALIDATOR:
+            try:
+                validation_result = coinaddrvalidator.validate(
+                    self._network, 
+                    self._wallet_address.encode()
+                )
+                return validation_result.valid
+            except Exception:
+                # Fall back to basic validation if coinaddrvalidator fails
+                pass
+        
+        # Basic regex validation for common address formats
+        return self._validate_address_format()
+    
+    def _validate_address_format(self) -> bool:
+        """Basic address format validation using regex patterns."""
+        network = self._network.lower()
+        address = self._wallet_address
+        
+        # Bitcoin-like addresses (legacy, segwit, bech32)
+        if network in ['bitcoin', 'btc', 'testnet']:
+            # Legacy: 1... (25-34 chars), Segwit: 3... (25-34 chars), Bech32: bc1... (42-62 chars)
+            pattern = r'^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-z0-9]{39,59}$'
+            return bool(re.match(pattern, address))
+        
+        # Ethereum-like addresses  
+        elif network in ['ethereum', 'eth']:
+            # 0x followed by 40 hex characters
+            pattern = r'^0x[a-fA-F0-9]{40}$'
+            return bool(re.match(pattern, address))
+            
+        # For other networks, just check it's not empty and reasonable length
+        else:
+            return len(address) >= 10 and len(address) <= 100
 
     def execute(self, amount: float) -> Dict[str, Any]:
         """Execute a crypto payment and return a transaction record.
@@ -111,7 +156,7 @@ class CryptoPayment(PaymentStrategy):
 
         The example uses attributes that may be set on the base class
         (``_transaction_id`` and ``status``). In real code the receipt
-        should include additional metadata and be persisted as needed.
+        should include additional metadata and be persisted as needed. 
         """
         receipt = {
             "transaction_id": getattr(self, "_transaction_id", None),
@@ -122,8 +167,16 @@ class CryptoPayment(PaymentStrategy):
 
     def set_wallet(self, wallet_address: str, network: str) -> None:
         """Configure the wallet address and network for this strategy."""
+        # Set values first
         self._wallet_address = wallet_address
         self._network = network
+        
+        # Validate using the same logic as validate() method
+        if not self.validate():
+            # Reset values if validation fails
+            self._wallet_address = None
+            self._network = None
+            raise ValueError("Invalid wallet address or network format")
 
     def get_wallet_info(self) -> Dict[str, Optional[str]]:
         """Return current wallet configuration."""
