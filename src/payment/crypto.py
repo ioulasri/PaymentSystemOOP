@@ -12,7 +12,7 @@ from .payment_strategy import PaymentStrategy
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 from datetime import datetime
-
+import coinaddrvalidator
 
 class CryptoPayment(PaymentStrategy):
     """PaymentStrategy implementation for crypto payments.
@@ -44,6 +44,7 @@ class CryptoPayment(PaymentStrategy):
             network). This simple implementation requires both values to
             be present.
         """
+
         return bool(self._wallet_address and self._network)
 
     def execute(self, amount: float) -> Dict[str, Any]:
@@ -111,7 +112,7 @@ class CryptoPayment(PaymentStrategy):
 
         The example uses attributes that may be set on the base class
         (``_transaction_id`` and ``status``). In real code the receipt
-        should include additional metadata and be persisted as needed.
+        should include additional metadata and be persisted as needed. 
         """
         receipt = {
             "transaction_id": getattr(self, "_transaction_id", None),
@@ -122,6 +123,11 @@ class CryptoPayment(PaymentStrategy):
 
     def set_wallet(self, wallet_address: str, network: str) -> None:
         """Configure the wallet address and network for this strategy."""
+
+        validation_result = coinaddrvalidator.validate(network, wallet_address.encode())
+        if not validation_result.valid:
+            raise ValueError("Invalid wallet address")
+
         self._wallet_address = wallet_address
         self._network = network
 
