@@ -6,7 +6,7 @@ import unittest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.payment.paypal import Paypal
-from src.payment.exceptions import ValidationError, ValueError as CustomValueError
+from src.payment.exceptions import ValidationError, ProjectValueError as CustomValueError
 
 
 class TestPaypalPayment(unittest.TestCase):
