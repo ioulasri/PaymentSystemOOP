@@ -1,25 +1,21 @@
 from src.core.exceptions import ProjectValueError
-
+from uuid import uuid4
 
 class Item:
 	"""
 	Represents an item in the inventory/order system.
 
 	The Item class manages product information including pricing, stock levels,
-	and discount percentages. Each item is assigned a unique auto-incrementing ID.
-
-	Class Attributes:
-		_next_id (int): Auto-incrementing counter for generating unique item IDs.
+	and discount percentages. Each item is assigned a unique ID.
 
 	Attributes:
 		name (str): The name of the item.
-		id (int): Unique identifier for the item (auto-generated).
+		id (str): Unique identifier for the item (auto-generated, format: ITEM-UUID).
 		price (float): The price of the item (must be positive).
 		stock (int): The quantity available in stock (must be non-negative).
 		discount (float): Discount percentage as a decimal (0.0 to 1.0).
 		quantity (int): The quantity of this item per order (must be positive, default is 1).
 	"""
-	_next_id = 1000
 	
 	def __init__(self, name: str):
 		"""
@@ -33,12 +29,11 @@ class Item:
 			using their respective property setters for validation.
 		"""
 		self.name = name
-		self.id = Item._next_id
+		self.id = f"ITEM-{uuid4().hex[:8].upper()}"
 		self._quantity: int = 1
 		self._price: float = 0
 		self._stock: int = 0
 		self._discount: float = 0
-		Item._next_id += 1
 	
 	@property
 	def price(self) -> float:
