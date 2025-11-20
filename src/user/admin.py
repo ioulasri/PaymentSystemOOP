@@ -40,11 +40,25 @@ class Admin(User):
 
     def __init__(
         self,
-        user_id: str,
         name: str,
         email: str,
         permissions: Optional[List[str]] = None,
     ):
+        """Create an Admin instance with auto-generated user ID.
+
+        Parameters
+        ----------
+        name : str
+            Administrator's name.
+        email : str
+            Contact email for notifications.
+        permissions : Optional[List[str]], default None
+            Permission strings describing allowed actions.
+            
+        Note
+        ----
+        The user_id is automatically generated with format "ADM-{uuid}".
+        """
         super().__init__()
         self._user_id = f"ADM-{uuid4()}"
         self._name = name
