@@ -44,7 +44,9 @@ class CryptoPayment(PaymentStrategy):
             network). This simple implementation requires both values to
             be present.
         """
-
+        validation_result = coinaddrvalidator.validate(self._network or "", (self._wallet_address or "").encode())
+        if not validation_result.valid:
+            return False
         return bool(self._wallet_address and self._network)
 
     def execute(self, amount: float) -> Dict[str, Any]:
