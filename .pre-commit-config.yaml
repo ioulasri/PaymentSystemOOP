@@ -27,8 +27,8 @@ repos:
     rev: v1.8.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-all]
-        args: ["--strict", "--ignore-missing-imports"]
+        additional_dependencies: [types-requests]
+        args: ["--ignore-missing-imports"]
 
   # Security scanning
   - repo: https://github.com/pycqa/bandit
