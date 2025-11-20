@@ -7,7 +7,7 @@ class PaymentStrategy(ABC):
 		super().__init__()
 		self.timestamp: date = date.today()
 		self.status: str
-		self.transaction_id: str = f"TX-"+{uuid4}
+		self.transaction_id: str = f"TX-{uuid4()}"
 
 	@abstractmethod
 	def validate(self) -> bool:
