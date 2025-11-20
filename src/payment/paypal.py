@@ -158,7 +158,7 @@ class Paypal(PaymentStrategy):
 		if not self.check_password(self.passwordtoken):
 			raise ValidationError("ValidationError", "Password is not strong")
 		if not self.check_verified(self._verified):
-			raise ValueError("ValueError", "Verified should be a boolean")
+			raise ProjectValueError("ValueError", "Verified should be a boolean")
 		return True
 
 	def execute(self, amount: float) -> dict:

@@ -61,7 +61,7 @@ class Item:
 			ValueError: If the price is zero or negative.
 		"""
 		if value <= 0:
-			raise ValueError("ValueError", "Price should be positive")
+			raise ProjectValueError("ValueError", "Price should be positive")
 		self._price = value
 
 	@property
@@ -88,7 +88,7 @@ class Item:
 			ValueError: If the quantity is zero or negative.
 		"""
 		if value <= 0:
-			raise ValueError("ValueError", "Quantity should be positive")
+			raise ProjectValueError("ValueError", "Quantity should be positive")
 		self._quantity = value
 
 	@property
@@ -115,7 +115,7 @@ class Item:
 			ValueError: If the stock quantity is negative.
 		"""
 		if value < 0:
-			raise ValueError("ValueError", "Stock amount should be positive")
+			raise ProjectValueError("ValueError", "Stock amount should be positive")
 		self._stock = value
 	
 	@property

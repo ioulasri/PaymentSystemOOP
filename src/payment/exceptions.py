@@ -19,8 +19,8 @@ class PaymentError(ProjectError):
 	def __init__(self, message, field=None):
 		super().__init__(message, field)
 
-class ValueError(ProjectError):
-	"""Raised when value fails"""
+class ProjectValueError(ProjectError):
+	"""Raised when value validation fails."""
 
 	def __init__(self, message, field=None):
 		super().__init__(message, field)
@@ -31,8 +31,8 @@ class OrderError(ProjectError):
 	def __init__(self, message, field=None):
 		super().__init__(message, field)
 
-class TypeError(ProjectError):
-	"""Raised when type error"""
+class ProjectTypeError(ProjectError):
+	"""Raised when type validation fails."""
 
 	def __init__(self, message, field=None):
 		super().__init__(message, field)

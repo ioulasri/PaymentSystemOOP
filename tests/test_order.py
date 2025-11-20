@@ -24,7 +24,7 @@ if str(project_root) not in sys.path:
 from src.order.order import Order
 from src.order.item import Item
 from src.user.customer import Customer
-from src.payment.exceptions import OrderError, TypeError as ProjectTypeError, ValueError as ProjectValueError
+from src.payment.exceptions import OrderError, ProjectTypeError, ProjectValueError
 
 
 class TestOrderInitialization(unittest.TestCase):
