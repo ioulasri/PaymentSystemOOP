@@ -4,26 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Results Dashboard - 2025-11-20 18:01:15</title>
+    <title>Test Results Dashboard - 2025-11-20 20:13:32</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 20px; 
-            background-color: #1a1a1a; 
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1a1a1a;
             color: #e0e0e0;
         }
-        .container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            background-color: #2d2d2d; 
-            padding: 20px; 
-            border-radius: 8px; 
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
             border: 2px solid #555555;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
-        .header { 
-            text-align: center; 
-            margin-bottom: 30px; 
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
             border-bottom: 1px solid #555555;
             padding-bottom: 20px;
         }
@@ -31,19 +31,19 @@
             color: #ffffff;
             margin-bottom: 10px;
         }
-        .stats { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
-            gap: 15px; 
-            margin-bottom: 30px; 
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
         }
-        .stat-card { 
-            background: #3a3a3a; 
-            padding: 15px; 
-            border-radius: 5px; 
-            text-align: center; 
+        .stat-card {
+            background: #3a3a3a;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
             border: 1px solid #555555;
-            border-left: 4px solid #007bff; 
+            border-left: 4px solid #007bff;
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .stat-card:hover {
@@ -65,32 +65,32 @@
         .stat-card.skipped { border-left-color: #ffc107; }
         .stat-card.errors { border-left-color: #fd7e14; }
         .stat-card.warnings { border-left-color: #6c757d; }
-        .files { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap: 10px; 
-            margin-bottom: 30px; 
+        .files {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 30px;
         }
-        .file-link { 
-            display: block; 
-            padding: 12px; 
-            background: #3a3a3a; 
-            text-decoration: none; 
-            color: #e0e0e0; 
-            border-radius: 4px; 
+        .file-link {
+            display: block;
+            padding: 12px;
+            background: #3a3a3a;
+            text-decoration: none;
+            color: #e0e0e0;
+            border-radius: 4px;
             border: 1px solid #555555;
             transition: all 0.2s ease;
             font-weight: 500;
         }
-        .file-link:hover { 
-            background: #4a4a4a; 
+        .file-link:hover {
+            background: #4a4a4a;
             border-color: #777777;
             transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
-        .timestamp { 
-            color: #aaaaaa; 
-            font-size: 0.9em; 
+        .timestamp {
+            color: #aaaaaa;
+            font-size: 0.9em;
         }
         h2 {
             color: #ffffff;
@@ -104,13 +104,13 @@
     <div class="container">
         <div class="header">
             <h1>🧪 Test Results Dashboard</h1>
-            <p class="timestamp">Generated on 2025-11-20 18:01:15</p>
+            <p class="timestamp">Generated on 2025-11-20 20:13:32</p>
         </div>
-        
+
         <div class="stats">
             <div class="stat-card passed">
                 <h3>✅ Passed</h3>
-                <p>200</p>
+                <p>0</p>
             </div>
             <div class="stat-card failed">
                 <h3>❌ Failed</h3>
@@ -126,10 +126,10 @@
             </div>
             <div class="stat-card warnings">
                 <h3>⚠️ Warnings</h3>
-                <p>7</p>
+                <p>0</p>
             </div>
         </div>
-        
+
         <h2>📁 Result Files</h2>
         <div class="files">
             <a href="success.txt" class="file-link">✅ success.txt</a>

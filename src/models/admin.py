@@ -12,9 +12,9 @@ backing stores and tie actions to real transaction services.
 """
 
 from typing import Any, Dict, List, Optional
+from uuid import uuid4
 
 from src.models.user import User
-from uuid import uuid4
 
 
 class Admin(User):
@@ -54,7 +54,7 @@ class Admin(User):
             Contact email for notifications.
         permissions : Optional[List[str]], default None
             Permission strings describing allowed actions.
-            
+
         Note
         ----
         The user_id is automatically generated with format "ADM-{uuid}".
@@ -145,6 +145,7 @@ class Admin(User):
         Supported filter keys: any key present in audit records; records must
         match all provided key/value pairs to be included.
         """
+
         def matches(rec: Dict[str, Any]) -> bool:
             for k, v in filter_params.items():
                 if rec.get(k) != v:

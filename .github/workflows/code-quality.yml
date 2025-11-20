@@ -13,7 +13,7 @@ jobs:
   code-quality:
     name: Code Quality Analysis
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,30 +34,30 @@ jobs:
       - name: Run comprehensive code analysis
         run: |
           echo "🔍 Running code quality analysis..."
-          
+
           # Create reports directory
           mkdir -p reports
-          
+
           # Flake8 for style and complexity
           echo "📏 Running flake8..."
           flake8 src tests --format=json --output-file=reports/flake8-report.json --exit-zero
-          
+
           # Black for formatting check
           echo "🎨 Checking code formatting..."
           black --check --diff src tests > reports/black-report.txt 2>&1 || true
-          
+
           # isort for import sorting
           echo "📦 Checking import sorting..."
           isort --check-only --diff src tests > reports/isort-report.txt 2>&1 || true
-          
+
           # MyPy for type checking
           echo "🔍 Running type checking..."
           mypy src --ignore-missing-imports --html-report reports/mypy-html > reports/mypy-report.txt 2>&1 || true
-          
+
           # Bandit for security
           echo "🔒 Running security analysis..."
           bandit -r src/ -f json -o reports/bandit-report.json -ll || true
-          
+
           # Safety for dependency vulnerabilities
           echo "🛡️ Checking dependencies for vulnerabilities..."
           if [ -f requirements.txt ]; then
@@ -75,11 +75,11 @@ jobs:
     name: Dependency Review
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
         with:

@@ -21,9 +21,9 @@ Related to #(issue number)
 
 ## 🚀 What Has Been Done
 <!-- Describe the changes made -->
-- [ ] 
-- [ ] 
-- [ ] 
+- [ ]
+- [ ]
+- [ ]
 
 ## 🧪 How Has This Been Tested?
 <!-- Describe the tests you ran to verify your changes -->
@@ -33,8 +33,8 @@ Related to #(issue number)
 - [ ] Test coverage maintained/improved
 
 **Test Configuration:**
-- Python version: 
-- OS: 
+- Python version:
+- OS:
 
 ## 📝 Checklist
 <!-- Mark completed items with an "x" -->

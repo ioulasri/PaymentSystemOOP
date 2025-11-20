@@ -13,7 +13,7 @@ The `test_runner.py` script is a comprehensive test execution and result parsing
 ### 📊 **Result Organization**
 All test results are automatically saved to the `test_results/` folder with the following files:
 - `success.txt` - All passed tests
-- `failed.txt` - All failed tests  
+- `failed.txt` - All failed tests
 - `skipped.txt` - All skipped tests
 - `errors.txt` - All tests with errors
 - `warnings.txt` - All warnings from the test run

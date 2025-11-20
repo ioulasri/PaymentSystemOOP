@@ -8,18 +8,21 @@ and simple invoicing). Implementations are intentionally simple and
 use in-memory/dummy logic suitable for tests and local development.
 """
 
-from src.core.base import PaymentStrategy
+import re
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
-from datetime import datetime
-import re
+
+from src.core.base import PaymentStrategy
 
 # Optional import for enhanced crypto address validation
 try:
     import coinaddrvalidator
+
     HAS_COINADDR_VALIDATOR = True
 except ImportError:
     HAS_COINADDR_VALIDATOR = False
+
 
 class CryptoPayment(PaymentStrategy):
     """PaymentStrategy implementation for crypto payments.
@@ -54,39 +57,38 @@ class CryptoPayment(PaymentStrategy):
         # Basic checks first
         if not (self._wallet_address and self._network):
             return False
-            
+
         # Enhanced validation if coinaddrvalidator is available
         if HAS_COINADDR_VALIDATOR:
             try:
                 validation_result = coinaddrvalidator.validate(
-                    self._network, 
-                    self._wallet_address.encode()
+                    self._network, self._wallet_address.encode()
                 )
                 return validation_result.valid
             except Exception:
                 # Fall back to basic validation if coinaddrvalidator fails
                 pass
-        
+
         # Basic regex validation for common address formats
         return self._validate_address_format()
-    
+
     def _validate_address_format(self) -> bool:
         """Basic address format validation using regex patterns."""
         network = self._network.lower()
         address = self._wallet_address
-        
+
         # Bitcoin-like addresses (legacy, segwit, bech32)
-        if network in ['bitcoin', 'btc', 'testnet']:
+        if network in ["bitcoin", "btc", "testnet"]:
             # Legacy: 1... (25-34 chars), Segwit: 3... (25-34 chars), Bech32: bc1... (42-62 chars)
-            pattern = r'^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-z0-9]{39,59}$'
+            pattern = r"^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-z0-9]{39,59}$"
             return bool(re.match(pattern, address))
-        
-        # Ethereum-like addresses  
-        elif network in ['ethereum', 'eth']:
+
+        # Ethereum-like addresses
+        elif network in ["ethereum", "eth"]:
             # 0x followed by 40 hex characters
-            pattern = r'^0x[a-fA-F0-9]{40}$'
+            pattern = r"^0x[a-fA-F0-9]{40}$"
             return bool(re.match(pattern, address))
-            
+
         # For other networks, just check it's not empty and reasonable length
         else:
             return len(address) >= 10 and len(address) <= 100
@@ -108,7 +110,7 @@ class CryptoPayment(PaymentStrategy):
         """
         # set canonical metadata on the strategy instance
         tx_id = str(uuid4())
-        ts = datetime.utcnow().isoformat() + "Z"
+        ts = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         self._transaction_id = tx_id
         self._timestamp = ts
         self.status = "completed"
@@ -118,20 +120,38 @@ class CryptoPayment(PaymentStrategy):
             self._transaction_id = tx_id
             self._timestamp = ts
             self.status = "failed"
-            return {"id": tx_id, "amount": amount, "status": self.status, "timestamp": ts, "error": "invalid amount"}
+            return {
+                "id": tx_id,
+                "amount": amount,
+                "status": self.status,
+                "timestamp": ts,
+                "error": "invalid amount",
+            }
 
         if float(amount) <= 0:
             self._transaction_id = tx_id
             self._timestamp = ts
             self.status = "failed"
-            return {"id": tx_id, "amount": amount, "status": self.status, "timestamp": ts, "error": "amount must be > 0"}
+            return {
+                "id": tx_id,
+                "amount": amount,
+                "status": self.status,
+                "timestamp": ts,
+                "error": "amount must be > 0",
+            }
 
         # Ensure configuration is valid
         if not self.validate():
             self._transaction_id = tx_id
             self._timestamp = ts
             self.status = "failed"
-            return {"id": tx_id, "amount": amount, "status": self.status, "timestamp": ts, "error": "strategy not configured"}
+            return {
+                "id": tx_id,
+                "amount": amount,
+                "status": self.status,
+                "timestamp": ts,
+                "error": "strategy not configured",
+            }
 
         # Simulate execution and include fee estimation
         try:
@@ -143,20 +163,33 @@ class CryptoPayment(PaymentStrategy):
             self._transaction_id = tx_id
             self._timestamp = ts
             self.status = "completed"
-            transaction = {"id": tx_id, "amount": float(amount), "fee": fee, "net_amount": net_amount, "status": self.status, "timestamp": ts}
+            transaction = {
+                "id": tx_id,
+                "amount": float(amount),
+                "fee": fee,
+                "net_amount": net_amount,
+                "status": self.status,
+                "timestamp": ts,
+            }
             return transaction
         except Exception as exc:
             self._transaction_id = tx_id
             self._timestamp = ts
             self.status = "failed"
-            return {"id": tx_id, "amount": amount, "status": self.status, "timestamp": ts, "error": str(exc)}
+            return {
+                "id": tx_id,
+                "amount": amount,
+                "status": self.status,
+                "timestamp": ts,
+                "error": str(exc),
+            }
 
     def generate_receipt(self) -> Dict[str, Any]:
         """Return a small receipt for the last transaction.
 
         The example uses attributes that may be set on the base class
         (``_transaction_id`` and ``status``). In real code the receipt
-        should include additional metadata and be persisted as needed. 
+        should include additional metadata and be persisted as needed.
         """
         receipt = {
             "transaction_id": getattr(self, "_transaction_id", None),
@@ -170,7 +203,7 @@ class CryptoPayment(PaymentStrategy):
         # Set values first
         self._wallet_address = wallet_address
         self._network = network
-        
+
         # Validate using the same logic as validate() method
         if not self.validate():
             # Reset values if validation fails
@@ -192,15 +225,25 @@ class CryptoPayment(PaymentStrategy):
 
     def track_transaction(self, transaction_id: str) -> Dict[str, Any]:
         """Return simple tracking information for a transaction id."""
-        tracking_info = {"transaction_id": transaction_id, "status": "in_transit", "confirmations": 3}
+        tracking_info = {
+            "transaction_id": transaction_id,
+            "status": "in_transit",
+            "confirmations": 3,
+        }
         return tracking_info
 
     def refund(self, transaction_id: str, amount: float) -> Dict[str, Any]:
         """Issue a refund for a transaction (dummy implementation)."""
-        refund_info = {"transaction_id": transaction_id, "refunded_amount": amount, "status": "refunded"}
+        refund_info = {
+            "transaction_id": transaction_id,
+            "refunded_amount": amount,
+            "status": "refunded",
+        }
         return refund_info
 
-    def convert_currency(self, amount: float, from_currency: str, to_currency: str) -> float:
+    def convert_currency(
+        self, amount: float, from_currency: str, to_currency: str
+    ) -> float:
         """Convert between currencies using a placeholder rate."""
         conversion_rate = 0.000025  # Example rate
         return amount * conversion_rate
@@ -215,12 +258,25 @@ class CryptoPayment(PaymentStrategy):
 
     def generate_invoice(self, amount: float, due_date: str) -> Dict[str, Any]:
         """Create a simple invoice-like dict for the requested amount."""
-        invoice = {"invoice_id": str(uuid4()), "amount": amount, "due_date": due_date, "status": "unpaid"}
+        invoice = {
+            "invoice_id": str(uuid4()),
+            "amount": amount,
+            "due_date": due_date,
+            "status": "unpaid",
+        }
         return invoice
 
-    def schedule_payment(self, amount: float, method: str, schedule_date: str) -> Dict[str, Any]:
+    def schedule_payment(
+        self, amount: float, method: str, schedule_date: str
+    ) -> Dict[str, Any]:
         """Schedule a payment for a future date (example only)."""
-        scheduled_payment = {"payment_id": str(uuid4()), "amount": amount, "method": method, "schedule_date": schedule_date, "status": "scheduled"}
+        scheduled_payment = {
+            "payment_id": str(uuid4()),
+            "amount": amount,
+            "method": method,
+            "schedule_date": schedule_date,
+            "status": "scheduled",
+        }
         return scheduled_payment
 
     def apply_discount(self, amount: float, discount_code: str) -> float:

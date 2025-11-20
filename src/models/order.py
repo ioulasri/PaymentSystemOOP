@@ -1,8 +1,8 @@
-from datetime import datetime
-from typing import List
 import sys
-from pathlib import Path
 import uuid
+from datetime import datetime
+from pathlib import Path
+from typing import List
 
 # Add project root to path for absolute imports
 project_root = Path(__file__).parent.parent.parent
@@ -13,171 +13,183 @@ from src.core.exceptions import *
 from src.models.customer import Customer
 from src.models.item import Item
 
+
 class Order:
-	"""
-	Represents a customer order in the payment system.
+    """
+    Represents a customer order in the payment system.
 
-	The Order class manages the lifecycle of a customer's purchase, including
-	item management, order status tracking, and payment processing coordination.
+    The Order class manages the lifecycle of a customer's purchase, including
+    item management, order status tracking, and payment processing coordination.
 
-	Attributes:
-		order_id (str): Unique identifier for the order.
-		customer (Customer): The customer who placed the order.
-		items (List[Item]): List of items included in the order.
-		total_amount (float): Total cost of the order (auto-calculated by add_item/remove_item).
-		status (str): Current order status (default: "pending").
-		created_at (datetime): Timestamp when the order was created.
-		payment_method (str): Payment method used for the order.
-		transaction_id (str): Transaction identifier from payment processing.
-	"""
+    Attributes:
+            order_id (str): Unique identifier for the order.
+            customer (Customer): The customer who placed the order.
+            items (List[Item]): List of items included in the order.
+            total_amount (float): Total cost of the order (auto-calculated by add_item/remove_item).
+            status (str): Current order status (default: "pending").
+            created_at (datetime): Timestamp when the order was created.
+            payment_method (str): Payment method used for the order.
+            transaction_id (str): Transaction identifier from payment processing.
+    """
 
-	def __init__(self, customer: Customer):
-		"""
-		Initialize a new Order.
+    def __init__(self, customer: Customer):
+        """
+        Initialize a new Order.
 
-		Creates a new order with pending status and current timestamp.
-		The total_amount is initialized to 0.0 and will be automatically
-		updated when items are added or removed using add_item() and remove_item().
+        Creates a new order with pending status and current timestamp.
+        The total_amount is initialized to 0.0 and will be automatically
+        updated when items are added or removed using add_item() and remove_item().
 
-		Args:
-			customer (Customer): The customer placing the order.
+        Args:
+                customer (Customer): The customer placing the order.
 
-		Note:
-			The order is created with:
-			- Order ID: Auto-generated using UUID format "ORD-XXXXXXXX"
-			- Status: "pending"
-			- Total amount: 0.0 (auto-calculated by add_item/remove_item methods)
-			- Created timestamp: current time
-			- Empty items list
-			- Empty payment_method and transaction_id
-		"""
-		self.order_id: str = f"ORD-{uuid.uuid4().hex[:8].upper()}"
-		self.customer: Customer = customer
-		self.items: List[Item] = []
-		self.total_amount: float = 0.0
-		self._status: str = "pending"
-		self.created_at: datetime = datetime.now()
-		self.payment_method: str = ""
-		self.transaction_id: str = ""
+        Note:
+                The order is created with:
+                - Order ID: Auto-generated using UUID format "ORD-XXXXXXXX"
+                - Status: "pending"
+                - Total amount: 0.0 (auto-calculated by add_item/remove_item methods)
+                - Created timestamp: current time
+                - Empty items list
+                - Empty payment_method and transaction_id
+        """
+        self.order_id: str = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+        self.customer: Customer = customer
+        self.items: List[Item] = []
+        self.total_amount: float = 0.0
+        self._status: str = "pending"
+        self.created_at: datetime = datetime.now()
+        self.payment_method: str = ""
+        self.transaction_id: str = ""
 
-	VALID_STATUSES = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"]
+    VALID_STATUSES = [
+        "pending",
+        "confirmed",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled",
+    ]
 
-	@property
-	def status(self) -> str:
-		return self._status
+    @property
+    def status(self) -> str:
+        return self._status
 
-	@status.setter
-	def status(self, value: str) -> None:
-		if value not in Order.VALID_STATUSES:
-			raise ProjectValueError("ValueError", f"Invalid status. Must be one of: {Order.VALID_STATUSES}")
-		self._status = value
+    @status.setter
+    def status(self, value: str) -> None:
+        if value not in Order.VALID_STATUSES:
+            raise ProjectValueError(
+                "ValueError", f"Invalid status. Must be one of: {Order.VALID_STATUSES}"
+            )
+        self._status = value
 
-	def add_item(self, item: Item) -> None:
-		"""
-		Add an item to the order and update the total amount.
+    def add_item(self, item: Item) -> None:
+        """
+        Add an item to the order and update the total amount.
 
-		Validates the item before adding it to the order's item list.
-		The item must be a valid Item instance and have stock available.
-		Automatically calculates and adds the item's final price (after discount)
-		to the order's total amount.
+        Validates the item before adding it to the order's item list.
+        The item must be a valid Item instance and have stock available.
+        Automatically calculates and adds the item's final price (after discount)
+        to the order's total amount.
 
-		Args:
-			item (Item): The item to add to the order.
+        Args:
+                item (Item): The item to add to the order.
 
-		Raises:
-			OrderError: If the item validation fails.
-			TypeError: If the item is not an Item instance.
+        Raises:
+                OrderError: If the item validation fails.
+                TypeError: If the item is not an Item instance.
 
-		Note:
-			The total_amount is automatically updated using the formula:
-			item.price * (1 - item.discount)
-		"""
-		if self.status in ["shipped", "delivered", "cancelled"]:
-			raise OrderError("OrderError", "Cannot modify completed/cancelled orders.")
-		# Validate item type and stock first
-		if not self.valid_item(item):
-			raise OrderError("OrderError", "Invalid Item")
-		if item.quantity <= 0:
-			raise ProjectValueError("ItemError", "Quantity should be 1 or more")
-		self.items.append(item)
-		self.total_amount += item.quantity * (item.price - item.price * item.discount)
+        Note:
+                The total_amount is automatically updated using the formula:
+                item.price * (1 - item.discount)
+        """
+        if self.status in ["shipped", "delivered", "cancelled"]:
+            raise OrderError("OrderError", "Cannot modify completed/cancelled orders.")
+        # Validate item type and stock first
+        if not self.valid_item(item):
+            raise OrderError("OrderError", "Invalid Item")
+        if item.quantity <= 0:
+            raise ProjectValueError("ItemError", "Quantity should be 1 or more")
+        self.items.append(item)
+        self.total_amount += item.quantity * (item.price - item.price * item.discount)
 
-	def valid_item(self, item) -> bool:
-		"""
-		Validate that an item can be added to the order.
+    def valid_item(self, item) -> bool:
+        """
+        Validate that an item can be added to the order.
 
-		Performs validation checks:
-		1. Verifies the item is an instance of the Item class
-		2. Checks that the item has stock available (stock > 0)
+        Performs validation checks:
+        1. Verifies the item is an instance of the Item class
+        2. Checks that the item has stock available (stock > 0)
 
-		Args:
-			item: The item to validate.
+        Args:
+                item: The item to validate.
 
-		Returns:
-			bool: True if the item is valid.
+        Returns:
+                bool: True if the item is valid.
 
-		Raises:
-			TypeError: If the item is not an Item instance.
-			OrderError: If the item has zero stock.
+        Raises:
+                TypeError: If the item is not an Item instance.
+                OrderError: If the item has zero stock.
 
-		Note:
-			This method raises exceptions for invalid items rather than
-			returning False, so it always returns True if no exception is raised.
-		"""
-		if not isinstance(item, Item):
-			raise ProjectTypeError("TypeError", "Item type is invalid")
-		if item.stock == 0:
-			raise OrderError("ItemError", "0 items in stock")
-		return True
-	
-	def remove_item(self, item: 'Item') -> bool:
-		"""
-		Remove an item from the order.
+        Note:
+                This method raises exceptions for invalid items rather than
+                returning False, so it always returns True if no exception is raised.
+        """
+        if not isinstance(item, Item):
+            raise ProjectTypeError("TypeError", "Item type is invalid")
+        if item.stock == 0:
+            raise OrderError("ItemError", "0 items in stock")
+        return True
 
-		Args:
-			item (Item): The item to remove from the order.
+    def remove_item(self, item: "Item") -> bool:
+        """
+        Remove an item from the order.
 
-		Returns:
-			bool: True if the item was found and removed, False otherwise.
+        Args:
+                item (Item): The item to remove from the order.
 
-		Note:
-			Also updates the total amount when an item is removed.
-			Accounts for item quantity in the total deduction.
-		"""
-		for i in self.items:
-			if i.id == item.id:
-				self.items.remove(i)
-				self.total_amount -= (item.quantity * (item.price - item.price * item.discount))
-				return True
-		return False
+        Returns:
+                bool: True if the item was found and removed, False otherwise.
 
-	def calculate_total(self) -> float:
-		"""
-		Recalculate the total amount from all items in the order.
+        Note:
+                Also updates the total amount when an item is removed.
+                Accounts for item quantity in the total deduction.
+        """
+        for i in self.items:
+            if i.id == item.id:
+                self.items.remove(i)
+                self.total_amount -= item.quantity * (
+                    item.price - item.price * item.discount
+                )
+                return True
+        return False
 
-		Returns:
-			float: The total amount after applying all discounts.
+    def calculate_total(self) -> float:
+        """
+        Recalculate the total amount from all items in the order.
 
-		Note:
-			This method recalculates from scratch using all items currently in the order.
-			Useful for verification or after bulk modifications.
-		"""
-		self.total_amount = sum(
-			item.quantity * (item.price - item.price * item.discount)
-			for item in self.items
-		)
-		return self.total_amount
+        Returns:
+                float: The total amount after applying all discounts.
 
-	def get_item_count(self) -> int:
-		"""Get total number of items in the order."""
-		return len(self.items)
+        Note:
+                This method recalculates from scratch using all items currently in the order.
+                Useful for verification or after bulk modifications.
+        """
+        self.total_amount = sum(
+            item.quantity * (item.price - item.price * item.discount)
+            for item in self.items
+        )
+        return self.total_amount
 
-	def is_empty(self) -> bool:
-		"""Check if order has no items."""
-		return len(self.items) == 0
-	
-	def __repr__(self) -> str:
-		return f"Order(id={self.order_id}, customer={self.customer._name}, items={len(self.items)}, total={self.total_amount:.2f})"
+    def get_item_count(self) -> int:
+        """Get total number of items in the order."""
+        return len(self.items)
 
-	def __str__(self) -> str:
-		return f"Order {self.order_id}: {len(self.items)} items, Total: ${self.total_amount:.2f}"
+    def is_empty(self) -> bool:
+        """Check if order has no items."""
+        return len(self.items) == 0
+
+    def __repr__(self) -> str:
+        return f"Order(id={self.order_id}, customer={self.customer._name}, items={len(self.items)}, total={self.total_amount:.2f})"
+
+    def __str__(self) -> str:
+        return f"Order {self.order_id}: {len(self.items)} items, Total: ${self.total_amount:.2f}"
