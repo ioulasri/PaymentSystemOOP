@@ -140,23 +140,25 @@ class Paypal(PaymentStrategy):
 		"""
 		Validate PayPal account information before processing payment.
 
-		Checks that all required fields are populated. Individual field validation
-		is already performed by property setters.
+		Checks that all required fields are populated and properly formatted.
 
 		Returns:
 			bool: True if all validations pass.
 
 		Raises:
-			ValidationError: If any required field is empty.
+			ValidationError: If any required field is empty or invalid.
+			ValueError: If the verified status is not a boolean.
 
 		Note:
-			Format validation for email and password strength is handled
-			automatically by their respective property setters.
+			This method performs comprehensive validation including format checks
+			for email and password strength.
 		"""
-		if not self.emailaddress:
-			raise ValidationError("ValidationError", "Email address is required")
-		if not self.passwordtoken:
-			raise ValidationError("ValidationError", "Password/token is required")
+		if not self.check_email(self.emailaddress):
+			raise ValidationError("ValidationError", "Email format is invalid")
+		if not self.check_password(self.passwordtoken):
+			raise ValidationError("ValidationError", "Password is not strong")
+		if not self.check_verified(self._verified):
+			raise ValueError("ValueError", "Verified should be a boolean")
 		return True
 
 	def execute(self, amount: float) -> dict:
