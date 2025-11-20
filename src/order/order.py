@@ -69,7 +69,7 @@ class Order:
 	@status.setter
 	def status(self, value: str) -> None:
 		if value not in Order.VALID_STATUSES:
-			raise ValueError("ValueError", f"Invalid status. Must be one of: {Order.VALID_STATUSES}")
+			raise ProjectValueError("ValueError", f"Invalid status. Must be one of: {Order.VALID_STATUSES}")
 		self._status = value
 
 	def add_item(self, item: Item) -> None:
@@ -98,7 +98,7 @@ class Order:
 		if not self.valid_item(item):
 			raise OrderError("OrderError", "Invalid Item")
 		if item.quantity <= 0:
-			raise ValueError("ItemError", "Quantity should be 1 or more")
+			raise ProjectValueError("ItemError", "Quantity should be 1 or more")
 		self.items.append(item)
 		self.total_amount += item.quantity * (item.price - item.price * item.discount)
 
@@ -125,7 +125,7 @@ class Order:
 			returning False, so it always returns True if no exception is raised.
 		"""
 		if not isinstance(item, Item):
-			raise TypeError("TypeError", "Item type is invalid")
+			raise ProjectTypeError("TypeError", "Item type is invalid")
 		if item.stock == 0:
 			raise OrderError("ItemError", "0 items in stock")
 		return True
