@@ -2,8 +2,8 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.payment.payment_strategy import PaymentStrategy
-from src.user.user import User
+from src.core.base import PaymentStrategy
+from src.models.user import User
 import unittest
 
 class TestPayment(unittest.TestCase):

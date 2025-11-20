@@ -13,7 +13,7 @@ backing stores and tie actions to real transaction services.
 
 from typing import Any, Dict, List, Optional
 
-from .user import User
+from src.models.user import User
 from uuid import uuid4
 
 

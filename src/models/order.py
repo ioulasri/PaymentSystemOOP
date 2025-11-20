@@ -9,9 +9,9 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from src.payment.exceptions import *
-from src.user.customer import Customer
-from src.order.item import Item
+from src.core.exceptions import *
+from src.models.customer import Customer
+from src.models.item import Item
 
 class Order:
 	"""

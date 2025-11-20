@@ -8,7 +8,7 @@ and simple invoicing). Implementations are intentionally simple and
 use in-memory/dummy logic suitable for tests and local development.
 """
 
-from .payment_strategy import PaymentStrategy
+from src.core.base import PaymentStrategy
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 from datetime import datetime

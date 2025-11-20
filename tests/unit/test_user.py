@@ -5,8 +5,8 @@ import unittest
 # ensure project src is importable
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.user.customer import Customer
-from src.user.admin import Admin
+from src.models.customer import Customer
+from src.models.admin import Admin
 
 
 class TestCustomerModel(unittest.TestCase):

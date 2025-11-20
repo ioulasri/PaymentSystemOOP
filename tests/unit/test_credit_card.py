@@ -6,8 +6,8 @@ from datetime import date
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.payment.credit_card import CreditCardPayment
-from src.payment.exceptions import ValidationError
+from src.payment.methods.credit_card import CreditCardPayment
+from src.core.exceptions import ValidationError
 from datetime import date
 
 

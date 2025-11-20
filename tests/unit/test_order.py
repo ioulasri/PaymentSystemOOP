@@ -21,10 +21,10 @@ project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from src.order.order import Order
-from src.order.item import Item
-from src.user.customer import Customer
-from src.payment.exceptions import OrderError, ProjectTypeError, ProjectValueError
+from src.models.order import Order
+from src.models.item import Item
+from src.models.customer import Customer
+from src.core.exceptions import OrderError, ProjectTypeError, ProjectValueError
 
 
 class TestOrderInitialization(unittest.TestCase):
