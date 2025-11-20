@@ -1,0 +1,12 @@
+WARNINGS - 2025-11-20 18:01:15
+============================================================
+
+tests/test_crypto.py::TestCryptoPayment::test_execute_invalid_amounts
+tests/test_crypto.py::TestCryptoPayment::test_execute_invalid_amounts
+tests/test_crypto.py::TestCryptoPayment::test_execute_success_and_receipt
+tests/test_crypto.py::TestCryptoPayment::test_fee_convert_track_refund
+/home/mak3r/Desktop/PaymentSystemOOP/src/payment/crypto.py:111: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+ts = datetime.utcnow().isoformat() + "Z"
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+Total warnings: 7
