@@ -165,6 +165,25 @@ class CreditCardPayment(PaymentStrategy):
 			raise ValidationError("ValidationError", "cvv has non digit or length is invalid")
 		self.__cvv = value
 
+	def deposit(self, amount: float) -> bool:
+		"""
+		Add funds to the credit card balance.
+
+		Args:
+			amount (float): The amount to deposit (must be positive).
+
+		Returns:
+			bool: True if deposit was successful.
+
+		Raises:
+			ValidationError: If the deposit amount is not positive.
+		"""
+		if amount <= 0:
+			raise ValidationError("ValidationError", "Deposit amount must be positive")
+		
+		self.balance += amount
+		return True
+
 	def validate(self) -> bool:
 		"""
 		Validate credit card information before processing payment.
