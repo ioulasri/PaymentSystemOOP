@@ -109,7 +109,6 @@ disallow_untyped_defs = false
 minversion = "7.0"
 addopts = [
     "-ra",
-    "-q",
     "--strict-markers",
     "--strict-config",
     "--cov=src",
@@ -118,7 +117,7 @@ addopts = [
     "--cov-report=html",
     "--cov-report=xml",
 ]
-testpaths = ["tests"]
+testpaths = ["tests", "tests/unit", "tests/integration"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
