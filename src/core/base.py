@@ -4,7 +4,7 @@ from uuid import uuid4
 
 
 class PaymentStrategy(ABC):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.timestamp: date = date.today()
         self.status: str
@@ -15,7 +15,7 @@ class PaymentStrategy(ABC):
         pass
 
     @abstractmethod
-    def execute(self, amount) -> dict:
+    def execute(self, amount: float) -> dict:
         pass
 
     @abstractmethod
