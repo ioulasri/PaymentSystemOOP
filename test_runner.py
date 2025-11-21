@@ -155,8 +155,8 @@ class TestRunner:
 
     def __init__(self):
         self.project_root = Path(__file__).parent.absolute()
-        self.results_dir = self.project_root / "test_results"
-        self.results_dir.mkdir(exist_ok=True)
+        self.results_dir = self.project_root / "tests" / "test_results"
+        self.results_dir.mkdir(parents=True, exist_ok=True)
         self.parser = TestResultParser()
 
     def run_tests(self, test_target=None, verbose=True, coverage=False):
