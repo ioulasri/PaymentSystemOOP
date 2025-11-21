@@ -76,9 +76,108 @@ class Customer(User):
         self._failed_attempts: int = 0
         # mark active by default
         self._is_active: bool = True
+        # Lock to protect wallet/transaction updates in multithreaded use
+        # (RLock allows reentrant calls inside the same thread).
+        from threading import RLock
+
+        self._lock = RLock()
+
+    @property
+    def name(self) -> str:
+        """Return the customer's name."""
+        return self._name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        """Set the customer's name."""
+        self._name = value
+
+    @property
+    def email(self) -> str:
+        """Return the customer's email."""
+        return self._email
+
+    @email.setter
+    def email(self, value: str) -> None:
+        """Set the customer's email."""
+        self._email = value
+
+    @property
+    def is_active(self) -> bool:
+        """Return whether the customer is active."""
+        return self._is_active
+
+    @is_active.setter
+    def is_active(self, value: bool) -> None:
+        """Set whether the customer is active."""
+        self._is_active = value
+
+    @property
+    def user_id(self) -> str:
+        """Return the customer's user ID."""
+        return self._user_id
+
+    @property
+    def failed_attempts(self) -> int:
+        """Return the number of recent failed attempts."""
+        return self._failed_attempts
+
+    @failed_attempts.setter
+    def failed_attempts(self, value: int) -> None:
+        """Set the number of recent failed attempts."""
+        self._failed_attempts = value
+
+    @property
+    def fraud_status(self) -> str:
+        """Return the current fraud status."""
+        return self._fraud_status
+
+    @fraud_status.setter
+    def fraud_status(self, value: str) -> None:
+        """Set the current fraud status."""
+        self._fraud_status = value
+
+    @property
+    def saved_payment_methods(self) -> List[Any]:
+        """Return the list of saved payment methods."""
+        return self._saved_payment_methods
+
+    @property
+    def wallets(self) -> Dict[str, Any]:
+        """Return the dictionary of wallets."""
+        return self._wallets
+
+    @property
+    def transaction_history(self) -> List[Dict[str, Any]]:
+        """Return the transaction history list."""
+        return self._transaction_history
+
+    @property
+    def balance(self) -> float:
+        """Return the aggregated balance across all wallets.
+
+        The method attempts to coerce wallet entries to numeric balances.
+        Wallet objects may provide helper methods (``get_balance``); if
+        an entry cannot be converted to float it is ignored.
+        """
+        # Prefer the view_balance method for a robust aggregation. Keep
+        # the property for convenience but implement via the same logic.
+        return self.view_balance()
+
+    def deactivate(self) -> None:
+        """Mark the user as inactive.
+
+        Exposed as a method (not a property) to match common usage and
+        to avoid accidental deactivation via attribute access.
+        """
+        self._is_active = False
 
     def get_user_info(self) -> Dict[str, Any]:
-        """Return a serializable mapping with basic user information."""
+        """Return a JSON-serializable mapping with basic user info.
+
+        This mirrors the shape returned by :class:`Admin` so callers can
+        treat different user types uniformly.
+        """
         return {
             "id": self._user_id,
             "name": self._name,
@@ -87,28 +186,29 @@ class Customer(User):
             "is_active": bool(getattr(self, "_is_active", True)),
         }
 
-    def deactivate(self) -> None:
-        """Mark the user as inactive."""
-        self._is_active = False
-
     def view_balance(self) -> float:
-        """Return the aggregated balance across all wallets.
+        """Return the aggregated numeric balance across all wallets.
 
-        The method attempts to coerce wallet entries to numeric balances.
-        Wallet objects may provide helper methods (``get_balance``); if
-        an entry cannot be converted to float it is ignored.
+        The method is defensive: it supports wallet objects that expose a
+        `get_balance()` method, objects with a numeric `balance` attr, or
+        plain numeric values. Any non-coercible entries are ignored. A
+        lock protects concurrent access/modification of wallets.
         """
-        balance = 0.0
-        for wallet in self._wallets.values():
-            try:
-                if hasattr(wallet, "get_balance"):
-                    balance += float(wallet.get_balance())
-                else:
-                    balance += float(wallet)
-            except Exception:
-                # Ignore wallets that can't be interpreted as numbers
-                continue
-        return balance
+        total: float = 0.0
+        with self._lock:
+            for wallet in self._wallets.values():
+                try:
+                    if hasattr(wallet, "get_balance"):
+                        total += float(wallet.get_balance())
+                    elif hasattr(wallet, "balance"):
+                        total += float(getattr(wallet, "balance"))
+                    else:
+                        total += float(wallet)
+                except (TypeError, ValueError, AttributeError):
+                    # Ignore non-coercible wallet entries
+                    continue
+
+        return total
 
     def add_transaction(self, transaction: Dict[str, Any]) -> None:
         """Append a transaction record to the customer's history.
@@ -167,17 +267,27 @@ class Customer(User):
             self.add_transaction(transaction)
             return transaction
 
+        # Basic validation
         try:
-            if hasattr(wallet, "deduct"):
-                wallet.deduct(amount)
-            elif hasattr(wallet, "get_balance") and hasattr(wallet, "set_balance"):
-                new_balance = float(wallet.get_balance()) - float(amount)
-                wallet.set_balance(new_balance)
-            else:
-                current = float(wallet)
-                new = current - float(amount)
-                self._wallets[method] = new
-        except Exception as exc:
+            amount = float(amount)
+        except (TypeError, ValueError):
+            raise ValueError("Amount must be a number")
+        if amount <= 0:
+            raise ValueError("Amount must be positive")
+
+        # Perform wallet update inside the lock to avoid races.
+        try:
+            with self._lock:
+                if hasattr(wallet, "deduct"):
+                    wallet.deduct(amount)
+                elif hasattr(wallet, "get_balance") and hasattr(wallet, "set_balance"):
+                    new_balance = float(wallet.get_balance()) - amount
+                    wallet.set_balance(new_balance)
+                else:
+                    current = float(wallet)
+                    new = current - amount
+                    self._wallets[method] = new
+        except (TypeError, ValueError, AttributeError) as exc:
             transaction["error"] = str(exc)
             self.add_transaction(transaction)
             return transaction
