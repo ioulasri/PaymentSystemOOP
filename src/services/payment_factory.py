@@ -3,6 +3,7 @@
 This module provides a factory class for instantiating and configuring
 various payment method types (credit card, PayPal, cryptocurrency).
 """
+
 from typing import Any
 
 from src.core.base import PaymentStrategy
