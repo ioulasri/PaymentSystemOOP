@@ -9,6 +9,12 @@ class PaymentStrategy(ABC):
         self.timestamp: date = date.today()
         self.status: str
         self.transaction_id: str = f"TX-{uuid4()}"
+        self._balance: float = 0.0
+
+    @property
+    @abstractmethod
+    def balance(self) -> float:
+        pass
 
     @abstractmethod
     def validate(self) -> bool:
