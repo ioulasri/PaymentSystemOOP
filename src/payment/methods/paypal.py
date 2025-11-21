@@ -17,7 +17,7 @@ class Paypal(PaymentStrategy):
             verified (bool): Whether the PayPal account is verified.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize a new PayPal payment method.
 
@@ -204,12 +204,12 @@ class Paypal(PaymentStrategy):
                         - Transaction status
                         - Verification status
         """
-        receipt = {}
+        receipt: dict = {}
         receipt["TransactionID"] = self.transaction_id
         receipt["PaymentMethod"] = "PayPal"
         receipt["EmailAddress"] = self.emailaddress
-        receipt["Amount"] = amount
-        receipt["Timestamp"] = self.timestamp
+        receipt["Amount"] = float(amount)
+        receipt["Timestamp"] = str(self.timestamp)
         receipt["Transaction status"] = self.status
         return receipt
 
@@ -247,7 +247,7 @@ class Paypal(PaymentStrategy):
         """
         return re.fullmatch(r"(?=.*[A-Za-z])(?=.*\d).{8,}", value) is not None
 
-    def check_verified(self, value) -> bool:
+    def check_verified(self, value: bool) -> bool:
         """
         Validate that the verification status is a boolean.
 
