@@ -314,7 +314,11 @@ class CreditCardPayment(PaymentStrategy):
         Returns:
                 bool: True if format is MM-YY, False otherwise.
         """
-        return re.fullmatch(r"\d{2}-\d{2}", expiration_date) is not None
+        if not re.fullmatch(r"\d{2}-\d{2}", expiration_date):
+            return False
+        # Also validate month is between 01-12
+        month = int(expiration_date.split("-")[0])
+        return 1 <= month <= 12
 
     def check_expirationdate(self, expiration_date: str) -> bool:
         """
