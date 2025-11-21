@@ -6,7 +6,7 @@ from src.core.exceptions import PaymentError, ValidationError
 
 
 class CreditCardPayment(PaymentStrategy):
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize a new Credit Card payment method.
 
@@ -282,13 +282,13 @@ class CreditCardPayment(PaymentStrategy):
                         - Timestamp
                         - Transaction status
         """
-        receipt = {}
+        receipt: dict = {}
         receipt["TransactionID"] = self.transaction_id
         receipt["PaymentMethod"] = "Credit Card"
         receipt["CardNumber"] = self.masked_card(self.cardnumber)
         receipt["CardHolder"] = self.cardholder
-        receipt["Amount"] = amount
-        receipt["Timestamp"] = self.timestamp
+        receipt["Amount"] = float(amount)
+        receipt["Timestamp"] = str(self.timestamp)
         receipt["Transaction status"] = self.status
         return receipt
 
