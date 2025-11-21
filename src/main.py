@@ -12,10 +12,6 @@ This demo demonstrates:
 import sys
 from pathlib import Path
 
-# Add project root to path for absolute imports
-project_root = Path(__file__).parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
 
 from src.core.exceptions import OrderError, PaymentError
 from src.models.customer import Customer
@@ -24,6 +20,10 @@ from src.models.order import Order
 from src.services.payment_factory import PaymentFactory
 from src.services.payment_processor import PaymentProcessor
 
+# Add project root to path for absolute imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 def demo_successful_payment():
     """Demonstrate a successful credit card payment."""
@@ -63,7 +63,7 @@ def demo_successful_payment():
         cardnumber="4532123456789012",
         expirationdate="12-27",
         cvv="123",
-        balance=5000.00
+        balance=5000.00,
     )
     print("✓ Credit card payment created and validated")
     print(f"  Balance: ${credit_card.balance:.2f}")
@@ -89,23 +89,23 @@ def demo_payment_factory():
     print("=" * 60)
     print("DEMO 2: Payment Factory Pattern")
     print("=" * 60)
-    
+
     customer = Customer("Mr David Chen", "david.chen@email.com")
     order = Order(customer=customer)
-    
+
     headphones = Item("AirPods Pro")
     headphones.price = 249.99
     headphones.stock = 15
     order.add_item(headphones)
-    
+
     print(f"\n✓ Order: {order.order_id}")
     print(f"  Customer: {customer._name}")
     print(f"  Item: {headphones.name}")
     print(f"  Total: ${order.total_amount:.2f}")
-    
+
     # Test Factory with different payment types
     print("\n⚙️  Testing Factory Pattern with Multiple Payment Types:")
-    
+
     # 1. Credit Card via Factory
     print("\n  1️⃣  Creating Credit Card payment...")
     cc_payment = PaymentFactory.create(
@@ -114,10 +114,10 @@ def demo_payment_factory():
         cardnumber="5500000000000004",
         expirationdate="06-28",
         cvv="789",
-        balance=1000.00
+        balance=1000.00,
     )
     print(f"     ✓ Type: {cc_payment.__class__.__name__}")
-    
+
     # 2. PayPal via Factory
     print("\n  2️⃣  Creating PayPal payment...")
     pp_payment = PaymentFactory.create(
@@ -125,19 +125,19 @@ def demo_payment_factory():
         emailaddress="david.chen@email.com",
         passwordtoken="SecureToken456",
         verified=True,
-        balance=500.00
+        balance=500.00,
     )
     print(f"     ✓ Type: {pp_payment.__class__.__name__}")
-    
+
     # 3. Crypto via Factory
     print("\n  3️⃣  Creating Crypto payment...")
     crypto_payment = PaymentFactory.create(
         "crypto",
         wallet_address="0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
-        network="ethereum"
+        network="ethereum",
     )
     print(f"     ✓ Type: {crypto_payment.__class__.__name__}")
-    
+
     print("\n✅ Factory successfully created all payment types!")
     print("   All payments are validated automatically by the factory.")
     print()
@@ -170,7 +170,7 @@ def demo_multiple_payment_methods():
         emailaddress="jane.smith@email.com",
         passwordtoken="SecurePass123!",
         verified=True,
-        balance=2000.00
+        balance=2000.00,
     )
     print("✓ PayPal payment created and validated")
 
@@ -197,7 +197,7 @@ def demo_error_handling():
         cardnumber="4532123456789012",
         expirationdate="12-26",
         cvv="456",
-        balance=1000.00
+        balance=1000.00,
     )
 
     try:

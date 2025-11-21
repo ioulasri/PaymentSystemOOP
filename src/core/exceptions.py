@@ -3,6 +3,7 @@
 This module defines project-specific exceptions for validation,
 payment processing, and error handling.
 """
+
 from typing import Optional
 
 
