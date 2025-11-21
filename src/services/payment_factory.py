@@ -98,6 +98,7 @@ class PaymentFactory:
         """Configure a CryptoPayment instance with provided parameters."""
         if "wallet_address" in params and "network" in params:
             try:
-                payment.set_wallet(params["wallet_address"], params["network"])
+                payment.wallet_address = params["wallet_address"]
+                payment.network = params["network"]
             except ValueError as e:
                 raise ValidationError("ValidationError", str(e))
