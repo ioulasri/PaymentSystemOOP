@@ -1,11 +1,23 @@
 """Crypto payment strategy.
 
-This module contains a lightweight, example implementation of a
-cryptocurrency payment strategy used by the payment system. The class
-provides methods for validating and executing crypto payments as well
-as a set of convenience helpers (fee estimation, refunds, tracking,
-and simple invoicing). Implementations are intentionally simple and
-use in-memory/dummy logic suitable for tests and local development.
+This module provides a lightweight, example implementation of a
+cryptocurrency payment strategy used by the payment system. It is
+intended for tests and local development only and deliberately avoids
+integration with real blockchain networks.
+
+The :class:`CryptoPayment` class below implements a small set of
+behaviours:
+
+- configuring a wallet address and network
+- validating address formats (simple regex rules plus optional
+    third-party validator)
+- simulating payment execution and fee estimation
+- a handful of convenience helpers (tracking, refunds, invoice
+    generation, currency conversion and scheduling)
+
+Note: This module is an example; do not use it as a production-grade
+crypto payment implementation. It uses in-memory state and simple
+heuristics so unit tests can exercise deterministic behaviour.
 """
 
 import re
@@ -14,6 +26,7 @@ from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 from src.core.base import PaymentStrategy
+from src.core.exceptions import PaymentError, ValidationError
 
 # Optional import for enhanced crypto address validation
 try:
@@ -25,89 +38,157 @@ except ImportError:
 
 
 class CryptoPayment(PaymentStrategy):
-    """PaymentStrategy implementation for crypto payments.
+    """Example PaymentStrategy for cryptocurrency payments.
 
-    This class stores an optional wallet address and network and exposes
-    a set of helper operations. Many methods return simple dicts that
-    represent transaction or reporting structures; these are intended as
-    examples and not production-grade implementations.
+    This class implements the abstract :class:`PaymentStrategy` API
+    with a minimal, test-friendly behaviour set. It keeps a simple
+    in-memory balance and wallet configuration and exposes methods
+    to validate an address, execute simulated payments and return
+    small dictionaries representing transactions, receipts and
+    related objects.
+
+    The implementation intentionally simplifies many aspects of
+    real crypto payments (no network submission, no persistence,
+    and deterministic fee calculation).
     """
 
     def __init__(self) -> None:
-        """Create a CryptoPayment instance.
+        """Initialize the payment strategy.
 
-        The strategy inherits timestamp/transaction metadata from the
-        base `PaymentStrategy` and keeps wallet/network configuration
-        locally.
+        The instance maintains a small amount of local state used by
+        the example implementation:
+
+        - ``_wallet_address``: optional string wallet address
+        - ``_network``: optional network identifier (e.g. 'ethereum')
+        - ``_balance``: in-memory float representing available funds
+
+        Timestamp and a default transaction id are provided by the
+        base :class:`PaymentStrategy` class.
         """
         super().__init__()
         self._wallet_address: Optional[str] = None
         self._network: Optional[str] = None
+        self._balance: float = 0.0
+
+    @property
+    def balance(self) -> float:
+        """Return the current in-memory balance.
+
+        This value is for example/test purposes only and is not
+        persisted to any external store.
+        """
+        return self._balance
+
+    @balance.setter
+    def balance(self, value: float) -> None:
+        """Set the in-memory balance.
+
+        A negative balance is invalid and raises :class:`ValueError`.
+        """
+        if value < 0:
+            raise ValidationError("ValidationError", "Balance cannot be negative.")
+        self._balance = value
+
+    @property
+    def wallet_address(self) -> Optional[str]:
+        """Return the configured wallet address or ``None`` if unset."""
+        return self._wallet_address
+
+    @wallet_address.setter
+    def wallet_address(self, value: str) -> None:
+        """Set the configured wallet address.
+
+        This setter does not validate the address format; call
+        :meth:`validate` to perform checks after setting values.
+        """
+        self._wallet_address = value
+
+    @property
+    def network(self) -> Optional[str]:
+        """Return the configured network identifier or ``None`` if unset."""
+        return self._network
+
+    @network.setter
+    def network(self, value: str) -> None:
+        """Set the configured network (e.g. 'ethereum' or 'bitcoin')."""
+        self._network = value
 
     def validate(self) -> bool:
-        """Validate current configuration for a crypto payment.
+        """Validate the configured wallet and address format.
 
-        Returns
-        -------
-        bool
-            True when the strategy is configured (has wallet address and
-            network). This simple implementation requires both values to
-            be present and validates address format when possible.
+        This method performs a small set of checks:
+
+        1. Ensure both a wallet address and network are configured.
+        2. If the optional ``coinaddrvalidator`` package is available
+           use it to validate the address; otherwise fall back to
+           internal regex-based checks for Bitcoin and Ethereum.
+
+        The method raises :class:`ValidationError` on missing or
+        invalid configuration (this mirrors the behaviour used in the
+        test-suite). It returns ``True`` when validation succeeds.
         """
         # Basic checks first
-        if not (self._wallet_address and self._network):
-            return False
+        if not self._wallet_address:
+            raise ValidationError("ValidationError", "Wallet address is required.")
+        if not self._network:
+            raise ValidationError("ValidationError", "Network is required.")
 
         # Enhanced validation if coinaddrvalidator is available
         if HAS_COINADDR_VALIDATOR:
-            try:
-                validation_result = coinaddrvalidator.validate(
-                    self._network, self._wallet_address.encode()
+            if coinaddrvalidator.validate(
+                self._network, self._wallet_address.encode()
+            ).valid:
+                raise ValidationError(
+                    "ValidationError", "Invalid wallet address format."
                 )
-                return validation_result.valid
-            except Exception:
-                # Fall back to basic validation if coinaddrvalidator fails
-                pass
-
+            return True
         # Basic regex validation for common address formats
         return self._validate_address_format()
 
     def _validate_address_format(self) -> bool:
-        """Basic address format validation using regex patterns."""
-        network = self._network.lower()
-        address = self._wallet_address
+        """Validate address format using simplistic regex rules.
+
+        This helper contains lightweight regular expressions for a few
+        common address types:
+
+        - Bitcoin (legacy, segwit, bech32)
+        - Ethereum (0x-prefixed 40-hex-char address)
+
+        The method returns ``True`` when the address matches the
+        expected pattern for the configured network and raises
+        :class:`ValidationError` for unsupported networks or obvious
+        invalid formats.
+        """
+        network = str(self._network)
+        address = str(self._wallet_address)
 
         # Bitcoin-like addresses (legacy, segwit, bech32)
-        if network in ["bitcoin", "btc", "testnet"]:
+        if network in ["bitcoin", "BTC", "testnet"]:
             # Legacy: 1... (25-34 chars), Segwit: 3... (25-34 chars),
             # Bech32: bc1... (42-62 chars)
             pattern = r"^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-z0-9]{39,59}$"
-            return bool(re.match(pattern, address))
+            if bool(re.match(pattern, address)):
+                return True
+            raise ValidationError("ValidationError", "Invalid wallet address format.")
 
         # Ethereum-like addresses
-        elif network in ["ethereum", "eth"]:
+        elif network in ["ethereum", "ETH"]:
             # 0x followed by 40 hex characters
             pattern = r"^0x[a-fA-F0-9]{40}$"
-            return bool(re.match(pattern, address))
-
-        # For other networks, just check it's not empty and reasonable length
-        else:
-            return len(address) >= 10 and len(address) <= 100
+            if bool(re.match(pattern, address)):
+                return True
+            raise ValidationError("ValidationError", "Invalid wallet address format.")
+        raise ValidationError(
+            "ValidationError", "Unsupported network for address validation."
+        )
 
     def execute(self, amount: float) -> Dict[str, Any]:
         """Execute a crypto payment and return a transaction record.
 
-        Parameters
-        ----------
-        amount : float
-            Amount to be paid.
-
-        Returns
-        -------
-        dict
-            A transaction dictionary with an id, amount, status and
-            timestamp. The timestamp/transaction id fields are taken
-            from the base class where available.
+        The method performs basic validation and then simulates a
+        payment by deducting the amount (minus the estimated fee)
+        from the in-memory balance and returning a small transaction
+        dictionary. Errors are surfaced via :class:`PaymentError`.
         """
         # set canonical metadata on the strategy instance
         tx_id = str(uuid4())
@@ -115,106 +196,27 @@ class CryptoPayment(PaymentStrategy):
         self._transaction_id = tx_id
         self._timestamp = ts
         self.status = "completed"
-
-        # Basic input validation
-        if amount is None or not isinstance(amount, (int, float)):
-            self._transaction_id = tx_id
-            self._timestamp = ts
-            self.status = "failed"
-            return {
-                "id": tx_id,
-                "amount": amount,
-                "status": self.status,
-                "timestamp": ts,
-                "error": "invalid amount",
-            }
-
+        self.validate()
         if float(amount) <= 0:
-            self._transaction_id = tx_id
-            self._timestamp = ts
-            self.status = "failed"
-            return {
-                "id": tx_id,
-                "amount": amount,
-                "status": self.status,
-                "timestamp": ts,
-                "error": "amount must be > 0",
-            }
-
-        # Ensure configuration is valid
-        if not self.validate():
-            self._transaction_id = tx_id
-            self._timestamp = ts
-            self.status = "failed"
-            return {
-                "id": tx_id,
-                "amount": amount,
-                "status": self.status,
-                "timestamp": ts,
-                "error": "strategy not configured",
-            }
+            raise PaymentError("PaymentError", "Amount must be positive.")
+        if float(amount) > self._balance:
+            raise PaymentError("PaymentError", "Insufficient balance for payment.")
 
         # Simulate execution and include fee estimation
         try:
-            fee = float(self.estimate_fees(float(amount)))
-            net_amount = float(amount) - fee
-            # In a real implementation we'd submit a transaction to the
-            # blockchain here and handle errors. This example simply
-            # returns a successful transaction record.
-            self._transaction_id = tx_id
-            self._timestamp = ts
-            self.status = "completed"
+            fee = self.estimate_fees(float(amount))
+            self._balance -= float(amount) + fee
             transaction = {
-                "id": tx_id,
-                "amount": float(amount),
-                "fee": fee,
-                "net_amount": net_amount,
-                "status": self.status,
-                "timestamp": ts,
+                "TransactionID": tx_id,
+                "Transaction status": self.status,
+                "TransactionType": "Crypto",
+                "Amount": amount,
+                "Fee": fee,
+                "Timestamp": ts,
             }
             return transaction
         except Exception as exc:
-            self._transaction_id = tx_id
-            self._timestamp = ts
-            self.status = "failed"
-            return {
-                "id": tx_id,
-                "amount": amount,
-                "status": self.status,
-                "timestamp": ts,
-                "error": str(exc),
-            }
-
-    def generate_receipt(self) -> Dict[str, Any]:
-        """Return a small receipt for the last transaction.
-
-        The example uses attributes that may be set on the base class
-        (``_transaction_id`` and ``status``). In real code the receipt
-        should include additional metadata and be persisted as needed.
-        """
-        receipt = {
-            "transaction_id": getattr(self, "_transaction_id", None),
-            "status": getattr(self, "status", None),
-            "details": "Crypto payment receipt",
-        }
-        return receipt
-
-    def set_wallet(self, wallet_address: str, network: str) -> None:
-        """Configure the wallet address and network for this strategy."""
-        # Set values first
-        self._wallet_address = wallet_address
-        self._network = network
-
-        # Validate using the same logic as validate() method
-        if not self.validate():
-            # Reset values if validation fails
-            self._wallet_address = None
-            self._network = None
-            raise ValueError("Invalid wallet address or network format")
-
-    def get_wallet_info(self) -> Dict[str, Optional[str]]:
-        """Return current wallet configuration."""
-        return {"wallet_address": self._wallet_address, "network": self._network}
+            raise PaymentError(f"PaymentError: Failed to execute payment: {exc}")
 
     def estimate_fees(self, amount: float) -> float:
         """Estimate network fees for a given amount.
@@ -248,14 +250,6 @@ class CryptoPayment(PaymentStrategy):
         """Convert between currencies using a placeholder rate."""
         conversion_rate = 0.000025  # Example rate
         return amount * conversion_rate
-
-    def set_network(self, network: str) -> None:
-        """Set the blockchain network used for payments."""
-        self._network = network
-
-    def get_network(self) -> Optional[str]:
-        """Return the configured network (or None)."""
-        return self._network
 
     def generate_invoice(self, amount: float, due_date: str) -> Dict[str, Any]:
         """Create a simple invoice-like dict for the requested amount."""
