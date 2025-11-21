@@ -19,5 +19,5 @@ class PaymentStrategy(ABC):
         pass
 
     @abstractmethod
-    def generate_receipt(self) -> dict:
+    def generate_receipt(self, amount: float) -> dict:
         pass
