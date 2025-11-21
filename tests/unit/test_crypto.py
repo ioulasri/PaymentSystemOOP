@@ -17,7 +17,9 @@ class TestCryptoPayment(unittest.TestCase):
         # by the base class in some versions). We implement a tiny
         # concrete method here so tests can instantiate safely.
         class _T(CryptoPayment):
-            def generate_receipt(self) -> Dict[str, Any]:
+            def generate_receipt(self, amount: float) -> Dict[str, Any]:
+                # Match the PaymentStrategy signature (amount param may be unused
+                # in these lightweight test stubs).
                 return {
                     "transaction_id": getattr(self, "_transaction_id", None),
                     "status": getattr(self, "status", None),
@@ -65,6 +67,8 @@ class TestCryptoPayment(unittest.TestCase):
         self.cp.balance = 500.0
         amount = 100.0
         fee = self.cp.estimate_fees(amount)
+        # perform the payment so balance is updated
+        self.cp.execute(amount)
         # balance decreased by amount + fee per implementation
         self.assertAlmostEqual(self.cp.balance, 500.0 - (amount + fee))
 
@@ -94,7 +98,8 @@ class TestCryptoValidation(unittest.TestCase):
 
         # instantiate the same small concrete subclass used above
         class _T(CryptoPayment):
-            def generate_receipt(self) -> Dict[str, Any]:
+            def generate_receipt(self, amount: float) -> Dict[str, Any]:
+                # Keep signature compatible with PaymentStrategy.
                 return {
                     "transaction_id": getattr(self, "_transaction_id", None),
                     "status": getattr(self, "status", None),
