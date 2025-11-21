@@ -93,7 +93,12 @@ class TestSupportedTypes(TestPaymentFactory):
     def test_supported_types_contains_crypto(self):
         """Test that SUPPORTED_TYPES includes crypto."""
         self.assertIn("crypto", PaymentFactory.SUPPORTED_TYPES)
-        self.assertEqual(PaymentFactory.SUPPORTED_TYPES["crypto"], CryptoPayment)
+        # After setUp, crypto is patched to ConcreteCrypto (a CryptoPayment subclass)
+        crypto_class = PaymentFactory.SUPPORTED_TYPES["crypto"]
+        self.assertTrue(
+            issubclass(crypto_class, CryptoPayment),
+            f"Expected crypto type to be CryptoPayment or subclass, got {crypto_class}",
+        )
 
     def test_supported_types_count(self):
         """Test that SUPPORTED_TYPES has exactly 3 payment types."""
