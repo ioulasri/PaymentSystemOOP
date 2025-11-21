@@ -47,7 +47,7 @@ class User(ABC):
     the base class to accept parameters and initialize them).
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Set up attribute annotations for the user instance.
 
         The base initializer does not populate the attributes with values;
@@ -64,7 +64,7 @@ class User(ABC):
         self._is_active: bool
 
     @abstractmethod
-    def get_user_info() -> dict:
+    def get_user_info(self) -> dict:
         """Return a mapping containing user information.
 
         Implementations should return a JSON-serializable dictionary with
@@ -78,7 +78,7 @@ class User(ABC):
         pass
 
     @abstractmethod
-    def deactivate() -> None:
+    def deactivate(self) -> None:
         """Deactivate the user account.
 
         Concrete subclasses should implement logic that marks the user as
