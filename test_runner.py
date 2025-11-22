@@ -206,7 +206,9 @@ class TestRunner:
 
                 cmd.extend(["--cov=src", "--cov-report=term-missing"])
             except ImportError:
-                print("⚠️  Warning: pytest-cov not installed. Running without coverage.")
+                print(
+                    "⚠️  Warning: pytest-cov not installed. Running without coverage."
+                )
                 print("   Install with: pip install pytest-cov")
 
         # Add additional useful flags
@@ -313,7 +315,9 @@ class TestRunner:
                         else (
                             "❌"
                             if test["status"] == "FAILED"
-                            else "⏭️" if test["status"] == "SKIPPED" else "💥"
+                            else "⏭️"
+                            if test["status"] == "SKIPPED"
+                            else "💥"
                         )
                     )
                     content += (
@@ -344,9 +348,7 @@ class TestRunner:
             summary += (
                 f"│ Total Tests:     {total:<8} │ Pass Rate: {pass_rate:>6.1f}%     │\n"
             )
-            summary += (
-                f"│ ✅ Passed:       {passed:<8} │ ❌ Failed:      {failed:<8} │\n"
-            )
+            summary += f"│ ✅ Passed:       {passed:<8} │ ❌ Failed:      {failed:<8} │\n"
             summary += (
                 f"│ ⏭️ Skipped:      {skipped:<8} │ 💥 Errors:      {errors:<8} │\n"
             )
