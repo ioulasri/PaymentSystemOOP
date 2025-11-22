@@ -4,7 +4,6 @@ from src.models.customer import Customer
 from src.models.order import Order
 from src.utils.logger import get_logger
 
-
 # Create logger at module level (more Pythonic)
 logger = get_logger(__name__)
 
@@ -44,9 +43,9 @@ class PaymentProcessor:
                 "customer_email": customer.email,
                 "amount": order.total_amount,
                 "payment_method": type(payment_method).__name__,
-            }
+            },
         )
-        
+
         # Validate order ownership
         if order.customer != customer:
             logger.error(
@@ -54,51 +53,46 @@ class PaymentProcessor:
                 extra={
                     "order_id": order.order_id,
                     "order_customer_email": order.customer.email,
-                    "requesting_customer_email": customer.email
-                }
+                    "requesting_customer_email": customer.email,
+                },
             )
             raise OrderError("Customer mismatch: order belongs to different customer")
-        
+
         # Validate order not empty
         if order.is_empty():
             logger.warning(
-                "Payment attempted on empty order",
-                extra={"order_id": order.order_id}
+                "Payment attempted on empty order", extra={"order_id": order.order_id}
             )
             raise OrderError("Order list is empty")
-        
+
         # Validate order status
         if order.status != "pending":
             logger.warning(
                 "Payment attempted on non-pending order",
-                extra={
-                    "order_id": order.order_id,
-                    "current_status": order.status
-                }
+                extra={"order_id": order.order_id, "current_status": order.status},
             )
             raise OrderError(f"Order is {order.status}!")
-        
+
         # Validate payment method
         logger.debug("Validating payment method")
         payment_method.validate()
-        
+
         # Execute payment
         try:
             logger.info(
                 "Executing payment",
-                extra={
-                    "order_id": order.order_id,
-                    "amount": order.total_amount
-                }
+                extra={"order_id": order.order_id, "amount": order.total_amount},
             )
             result = payment_method.execute(order.total_amount)
-            
+
             # Update order and customer
             order.status = "confirmed"
             order.transaction_id = result["TransactionID"]
-            order.payment_method = str(type(payment_method).__name__.replace("Payment", ""))
+            order.payment_method = str(
+                type(payment_method).__name__.replace("Payment", "")
+            )
             customer.add_transaction(result)
-            
+
             # Log success
             logger.info(
                 "Payment processed successfully",
@@ -106,12 +100,12 @@ class PaymentProcessor:
                     "order_id": order.order_id,
                     "transaction_id": result["TransactionID"],
                     "amount": result["amount"],
-                    "payment_method": type(payment_method).__name__
-                }
+                    "payment_method": type(payment_method).__name__,
+                },
             )
-            
+
             return result
-            
+
         except PaymentError as e:
             # Log failure with details
             logger.error(
@@ -120,8 +114,8 @@ class PaymentProcessor:
                     "order_id": order.order_id,
                     "amount": order.total_amount,
                     "payment_method": type(payment_method).__name__,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True  # Include stack trace
+                exc_info=True,  # Include stack trace
             )
             raise PaymentError(f"Payment failed for order {order.order_id}: {str(e)}")
