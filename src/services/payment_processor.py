@@ -99,7 +99,7 @@ class PaymentProcessor:
                 extra={
                     "order_id": order.order_id,
                     "transaction_id": result["TransactionID"],
-                    "amount": result["amount"],
+                    "amount": result["Amount"],
                     "payment_method": type(payment_method).__name__,
                 },
             )
