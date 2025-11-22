@@ -25,161 +25,59 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: ${{ github.event.workflow_run.id }},
-            });
-            console.log('Artifacts:', artifacts.data);
+            const script = require('./.github/scripts/download-artifacts.js');
+            await script({ github, context, runId: ${{ github.event.workflow_run.id }} });
 
       - name: Get workflow run details
         id: workflow-details
         uses: actions/github-script@v7
         with:
           script: |
-            const run = await github.rest.actions.getWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: ${{ github.event.workflow_run.id }},
-            });
-
-            core.setOutput('run_url', run.data.html_url);
-            core.setOutput('run_number', run.data.run_number);
-            core.setOutput('head_branch', run.data.head_branch);
-            core.setOutput('head_sha', run.data.head_sha.substring(0, 7));
-            core.setOutput('triggering_actor', run.data.triggering_actor.login);
+            const script = require('./.github/scripts/get-workflow-details.js');
+            await script({ github, context, core, runId: ${{ github.event.workflow_run.id }} });
 
       - name: Get jobs details
         id: jobs-details
         uses: actions/github-script@v7
         with:
           script: |
-            const jobs = await github.rest.actions.listJobsForWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: ${{ github.event.workflow_run.id }},
-            });
-
-            const failedJobs = jobs.data.jobs.filter(job => job.conclusion === 'failure');
-            const failedSteps = failedJobs.flatMap(job =>
-              job.steps.filter(step => step.conclusion === 'failure')
-                .map(step => ({
-                  job: job.name,
-                  step: step.name,
-                  url: job.html_url
-                }))
-            );
-
-            core.setOutput('failed_jobs', JSON.stringify(failedJobs.map(j => j.name)));
-            core.setOutput('failed_steps', JSON.stringify(failedSteps));
-
-            return failedSteps;
+            const script = require('./.github/scripts/get-jobs-details.js');
+            await script({ github, context, core, runId: ${{ github.event.workflow_run.id }} });
 
       - name: Check for existing issue
         id: check-issue
         uses: actions/github-script@v7
         with:
           script: |
-            const branch = '${{ steps.workflow-details.outputs.head_branch }}';
-            const issueTitle = `CI Failure on ${branch}`;
-
-            const issues = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              labels: 'ci-failure,automated',
-              per_page: 100
+            const script = require('./.github/scripts/check-existing-issue.js');
+            await script({
+              github,
+              context,
+              core,
+              branch: '${{ steps.workflow-details.outputs.head_branch }}'
             });
-
-            const existingIssue = issues.data.find(issue =>
-              issue.title.includes(issueTitle) ||
-              issue.body.includes(`Branch: \`${branch}\``)
-            );
-
-            if (existingIssue) {
-              core.setOutput('issue_exists', 'true');
-              core.setOutput('issue_number', existingIssue.number);
-            } else {
-              core.setOutput('issue_exists', 'false');
-            }
-
-            return existingIssue;
 
       - name: Create or update issue
         uses: actions/github-script@v7
         with:
           script: |
-            const branch = '${{ steps.workflow-details.outputs.head_branch }}';
-            const sha = '${{ steps.workflow-details.outputs.head_sha }}';
-            const runUrl = '${{ steps.workflow-details.outputs.run_url }}';
-            const runNumber = '${{ steps.workflow-details.outputs.run_number }}';
-            const actor = '${{ steps.workflow-details.outputs.triggering_actor }}';
+            const script = require('./.github/scripts/create-or-update-issue.js');
             const failedSteps = JSON.parse('${{ steps.jobs-details.outputs.failed_steps }}');
-            const issueExists = '${{ steps.check-issue.outputs.issue_exists }}' === 'true';
-            const issueNumber = '${{ steps.check-issue.outputs.issue_number }}';
 
-            // Format failed steps
-            let stepsTable = '| Job | Failed Step | Details |\n|-----|-------------|----------|\n';
-            failedSteps.forEach(step => {
-              stepsTable += `| ${step.job} | ${step.step} | [View logs](${step.url}) |\n`;
+            await script({
+              github,
+              context,
+              params: {
+                branch: '${{ steps.workflow-details.outputs.head_branch }}',
+                sha: '${{ steps.workflow-details.outputs.head_sha }}',
+                runUrl: '${{ steps.workflow-details.outputs.run_url }}',
+                runNumber: '${{ steps.workflow-details.outputs.run_number }}',
+                actor: '${{ steps.workflow-details.outputs.triggering_actor }}',
+                failedSteps: failedSteps,
+                issueExists: '${{ steps.check-issue.outputs.issue_exists }}' === 'true',
+                issueNumber: '${{ steps.check-issue.outputs.issue_number }}'
+              }
             });
-
-            const issueBody = `## 🚨 CI Pipeline Failed
-
-            **Branch:** \`${branch}\`
-            **Commit:** \`${sha}\`
-            **Triggered by:** @${actor}
-            **Run:** [#${runNumber}](${runUrl})
-            **Date:** ${new Date().toISOString().split('T')[0]}
-
-            ### Failed Steps
-
-            ${stepsTable}
-
-            ### Action Required
-
-            Please review the failed jobs and fix the issues. Common problems:
-
-            - [ ] Linting errors (flake8, mypy)
-            - [ ] Test failures
-            - [ ] Security issues (bandit)
-            - [ ] Type checking errors
-            - [ ] Code formatting (black, isort)
-
-            ### How to Fix
-
-            1. Pull the latest changes: \`git pull origin ${branch}\`
-            2. Run checks locally: \`make ci-test\`
-            3. Fix the errors shown in the logs
-            4. Commit and push your fixes
-
-            ---
-            *This issue was automatically created by the CI failure workflow.*
-            *The issue will be automatically closed when the CI passes.*`;
-
-            if (issueExists) {
-              // Update existing issue
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issueNumber,
-                body: `## 🔄 CI Still Failing\n\n${issueBody}`
-              });
-
-              console.log(`Updated existing issue #${issueNumber}`);
-            } else {
-              // Create new issue
-              const issue = await github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: `🚨 CI Failure on ${branch} (${sha})`,
-                body: issueBody,
-                labels: ['ci-failure', 'automated', 'bug'],
-                assignees: [actor]
-              });
-
-              console.log(`Created new issue #${issue.data.number}`);
-            }
 
   close-issue-on-success:
     runs-on: ubuntu-latest
@@ -191,44 +89,16 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const run = await github.rest.actions.getWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: ${{ github.event.workflow_run.id }},
-            });
-
-            core.setOutput('head_branch', run.data.head_branch);
+            const script = require('./.github/scripts/get-workflow-details.js');
+            await script({ github, context, core, runId: ${{ github.event.workflow_run.id }} });
 
       - name: Close related issues
         uses: actions/github-script@v7
         with:
           script: |
-            const branch = '${{ steps.workflow-details.outputs.head_branch }}';
-
-            const issues = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              labels: 'ci-failure,automated',
-              per_page: 100
+            const script = require('./.github/scripts/close-ci-issues.js');
+            await script({
+              github,
+              context,
+              branch: '${{ steps.workflow-details.outputs.head_branch }}'
             });
-
-            for (const issue of issues.data) {
-              if (issue.title.includes(branch) || issue.body.includes(`Branch: \`${branch}\``)) {
-                await github.rest.issues.update({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issue.number,
-                  state: 'closed'
-                });
-
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issue.number,
-                  body: '✅ CI is now passing! Automatically closing this issue.'
-                });
-
-                console.log(`Closed issue #${issue.number}`);
-              }
-            }
