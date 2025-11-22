@@ -12,7 +12,12 @@ This demo demonstrates:
 import sys
 from pathlib import Path
 
+# Add project root to path for absolute imports (MUST come before other imports)
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
+# Now we can import from src
 from src.core.exceptions import OrderError, PaymentError
 from src.models.customer import Customer
 from src.models.item import Item
@@ -20,12 +25,8 @@ from src.models.order import Order
 from src.services.payment_factory import PaymentFactory
 from src.services.payment_processor import PaymentProcessor
 
-# Add project root to path for absolute imports
-project_root = Path(__file__).parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
 
-def demo_successful_payment():
+def demo_successful_payment() -> None:
     """Demonstrate a successful credit card payment."""
     print("=" * 60)
     print("DEMO 1: Successful Credit Card Payment")
@@ -66,6 +67,9 @@ def demo_successful_payment():
         balance=5000.00,
     )
     print("✓ Credit card payment created and validated")
+    # Type assertion: we know it's a CreditCard with balance attribute
+    from src.payment.methods.credit_card import CreditCard
+    assert isinstance(credit_card, CreditCard)
     print(f"  Balance: ${credit_card.balance:.2f}")
 
     # 4. Process payment
@@ -84,7 +88,7 @@ def demo_successful_payment():
     print()
 
 
-def demo_payment_factory():
+def demo_payment_factory() -> None:
     """Demonstrate the Payment Factory pattern."""
     print("=" * 60)
     print("DEMO 2: Payment Factory Pattern")
@@ -143,7 +147,7 @@ def demo_payment_factory():
     print()
 
 
-def demo_multiple_payment_methods():
+def demo_multiple_payment_methods() -> None:
     """Demonstrate using different payment methods (Strategy Pattern)."""
     print("=" * 60)
     print("DEMO 3: Multiple Payment Methods (Strategy Pattern)")
@@ -180,7 +184,7 @@ def demo_multiple_payment_methods():
     print()
 
 
-def demo_error_handling():
+def demo_error_handling() -> None:
     """Demonstrate error handling and validation."""
     print("=" * 60)
     print("DEMO 4: Error Handling & Validation")
@@ -214,6 +218,9 @@ def demo_error_handling():
     expensive_item.stock = 1
     order.add_item(expensive_item)
 
+    # Type assertion for balance access
+    from src.payment.methods.credit_card import CreditCard
+    assert isinstance(credit_card, CreditCard)
     credit_card.balance = 100.00  # Not enough!
 
     try:
@@ -235,7 +242,7 @@ def demo_error_handling():
     print()
 
 
-def main():
+def main() -> None:
     """Run all demos."""
     print("\n")
     print("╔" + "═" * 58 + "╗")
