@@ -106,6 +106,10 @@ module = "tests.*"
 disallow_untyped_defs = false
 
 [[tool.mypy.overrides]]
+module = "pytest_cov"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
 module = "coinaddrvalidator"
 ignore_missing_imports = true
 
