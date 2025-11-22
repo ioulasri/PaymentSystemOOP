@@ -67,9 +67,10 @@ def demo_successful_payment() -> None:
         balance=5000.00,
     )
     print("✓ Credit card payment created and validated")
-    # Type assertion: we know it's a CreditCard with balance attribute
-    from src.payment.methods.credit_card import CreditCard
-    assert isinstance(credit_card, CreditCard)
+    # Type assertion: we know it's a CreditCardPayment with balance attribute
+    from src.payment.methods.credit_card import CreditCardPayment
+
+    assert isinstance(credit_card, CreditCardPayment)
     print(f"  Balance: ${credit_card.balance:.2f}")
 
     # 4. Process payment
@@ -219,8 +220,9 @@ def demo_error_handling() -> None:
     order.add_item(expensive_item)
 
     # Type assertion for balance access
-    from src.payment.methods.credit_card import CreditCard
-    assert isinstance(credit_card, CreditCard)
+    from src.payment.methods.credit_card import CreditCardPayment
+
+    assert isinstance(credit_card, CreditCardPayment)
     credit_card.balance = 100.00  # Not enough!
 
     try:
