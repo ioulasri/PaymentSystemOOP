@@ -24,25 +24,26 @@ Date: November 2025
 
 import argparse
 import re
-import subprocess
+import subprocess  # nosec
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 
 class TestResultParser:
     """Parser for pytest output to extract and categorize test results."""
 
-    def __init__(self):
-        self.passed_tests = []
-        self.failed_tests = []
-        self.skipped_tests = []
-        self.error_tests = []
-        self.warnings = []
-        self.summary_info = {}
+    def __init__(self) -> None:
+        self.passed_tests: list[dict] = []
+        self.failed_tests: list[dict] = []
+        self.skipped_tests: list[dict] = []
+        self.error_tests: list[dict] = []
+        self.warnings: list[str] = []
+        self.summary_info: dict[str, int] = {}
         self.full_output = ""
 
-    def parse_output(self, output: str):
+    def parse_output(self, output: str) -> None:
         """Parse pytest output and categorize results."""
         self.full_output = output
         lines = output.split("\n")
@@ -93,7 +94,7 @@ class TestResultParser:
         # Parse summary
         self._parse_summary(lines)
 
-    def _parse_summary(self, lines):
+    def _parse_summary(self, lines: list[str]) -> None:
         """Extract summary information from pytest output."""
         for line in lines:
             # Look for summary line pattern
@@ -153,13 +154,18 @@ class TestResultParser:
 class TestRunner:
     """Main test runner class."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.project_root = Path(__file__).parent.absolute()
         self.results_dir = self.project_root / "tests" / "test_results"
         self.results_dir.mkdir(parents=True, exist_ok=True)
         self.parser = TestResultParser()
 
-    def run_tests(self, test_target=None, verbose=True, coverage=False):
+    def run_tests(
+        self,
+        test_target: Optional[str] = None,
+        verbose: bool = True,
+        coverage: bool = False,
+    ) -> tuple[int, str, str]:
         """
         Run pytest with specified parameters.
 
@@ -212,7 +218,7 @@ class TestRunner:
         self._print_command_info(cmd, test_target, coverage)
 
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # nosec
                 cmd,
                 cwd=self.project_root,
                 capture_output=True,
@@ -225,7 +231,7 @@ class TestRunner:
         except Exception as e:
             return 1, "", f"Error running tests: {str(e)}"
 
-    def save_results(self):
+    def save_results(self) -> None:
         """Save parsed results to organized files."""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -281,7 +287,9 @@ class TestRunner:
         # Create index file
         self._create_index_file(timestamp)
 
-    def _save_test_list(self, test_list, filename, header):
+    def _save_test_list(
+        self, test_list: list[dict], filename: str, header: str
+    ) -> None:
         """Save a list of tests to a file with proper formatting."""
         if not test_list:
             content = header + "No tests found in this category.\n"
@@ -290,7 +298,7 @@ class TestRunner:
             content += f"Total count: {len(test_list)}\n\n"
 
             # Group by file for better organization
-            by_file = {}
+            by_file: dict[str, list[dict]] = {}
             for test in test_list:
                 file_name = test["file"].split("/")[-1]  # Get just filename
                 if file_name not in by_file:
@@ -320,7 +328,7 @@ class TestRunner:
 
         self._save_file(filename, content)
 
-    def _generate_summary(self, timestamp):
+    def _generate_summary(self, timestamp: str) -> str:
         """Generate a comprehensive summary of test results."""
         summary = f"📅 {timestamp}\n\n"
 
@@ -441,7 +449,7 @@ class TestRunner:
 
         return summary
 
-    def _create_index_file(self, timestamp):
+    def _create_index_file(self, timestamp: str) -> None:
         """Create an HTML index file for easy viewing of results."""
         html_content = f"""
 <!DOCTYPE html>
@@ -591,7 +599,7 @@ class TestRunner:
 """
         self._save_file("index.html", html_content)
 
-    def _save_file(self, filename, content):
+    def _save_file(self, filename: str, content: str) -> None:
         """Save content to a file in the results directory."""
         filepath = self.results_dir / filename
         try:
@@ -604,7 +612,12 @@ class TestRunner:
         except Exception as e:
             print(f"  ❌ {filename:<20} → Error: {e}")
 
-    def run_and_parse(self, test_target=None, verbose=True, coverage=False):
+    def run_and_parse(
+        self,
+        test_target: Optional[str] = None,
+        verbose: bool = True,
+        coverage: bool = False,
+    ) -> bool:
         """Run tests and parse results."""
         # Header with styled output
         self._print_styled_header()
@@ -633,19 +646,19 @@ class TestRunner:
 
         return returncode == 0
 
-    def _print_styled_header(self):
+    def _print_styled_header(self) -> None:
         """Print a styled header for the test runner."""
         print("\n" + "╔" + "═" * 58 + "╗")
         print("║" + " " * 18 + "🧪 TEST RUNNER" + " " * 18 + "║")
         print("╚" + "═" * 58 + "╝")
 
-    def _print_section_header(self, title, color="WHITE"):
+    def _print_section_header(self, title: str, color: str = "WHITE") -> None:
         """Print a styled section header."""
         print(f"\n{'─' * 60}")
         print(f"🔸 {title}")
         print("─" * 60)
 
-    def _get_file_icon(self, filename):
+    def _get_file_icon(self, filename: str) -> str:
         """Get appropriate icon for file type."""
         icons = {
             "success.txt": "✅",
@@ -659,7 +672,12 @@ class TestRunner:
         }
         return icons.get(filename, "📁")
 
-    def _print_command_info(self, cmd, test_target, coverage):
+    def _print_command_info(
+        self,
+        cmd: list[str],
+        test_target: Optional[str] = None,
+        coverage: bool = False,
+    ) -> None:
         """Print styled command information."""
         print("\n🔧 Test Configuration:")
         print("┌" + "─" * 58 + "┐")
@@ -689,7 +707,7 @@ class TestRunner:
         print("\n🚀 Executing tests...\n")
 
 
-def main():
+def main() -> None:
     """Main entry point."""
     parser = argparse.ArgumentParser(
         description="Run tests and organize results into separate files",
