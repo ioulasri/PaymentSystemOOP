@@ -110,7 +110,9 @@ class CryptoPayment(PaymentStrategy):
 
     @network.setter
     def network(self, value: str) -> None:
-        """Set the configured network (e.g. 'ethereum' or 'bitcoin')."""
+        """Set the configured network
+        (e.g. 'ethereum' or 'bitcoin').
+        """
         self._network = value
 
     def validate(self) -> bool:
@@ -251,15 +253,16 @@ class CryptoPayment(PaymentStrategy):
         conversion_rate = 0.000025  # Example rate
         return amount * conversion_rate
 
-    def generate_invoice(self, amount: float, due_date: str) -> Dict[str, Any]:
-        """Create a simple invoice-like dict for the requested amount."""
-        invoice = {
-            "invoice_id": str(uuid4()),
-            "amount": amount,
-            "due_date": due_date,
-            "status": "unpaid",
-        }
-        return invoice
+    def generate_receipt(self, amount: float) -> Dict[str, Any]:
+        """Generate a simple receipt dict for the payment."""
+        receipt: dict = {}
+        receipt["TransactionID"] = self.transaction_id
+        receipt["PaymentMethod"] = "Crypto"
+        receipt["WalletAddress"] = self.wallet_address
+        receipt["Amount"] = float(amount)
+        receipt["Timestamp"] = str(self.timestamp)
+        receipt["Transaction status"] = self.status
+        return receipt
 
     def schedule_payment(
         self, amount: float, method: str, schedule_date: str
