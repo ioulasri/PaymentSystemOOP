@@ -27,6 +27,9 @@ from uuid import uuid4
 
 from src.core.base import PaymentStrategy
 from src.core.exceptions import PaymentError, ValidationError
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 # Optional import for enhanced crypto address validation
 try:
@@ -198,10 +201,42 @@ class CryptoPayment(PaymentStrategy):
         self._transaction_id = tx_id
         self._timestamp = ts
         self.status = "completed"
+
+        logger.info(
+            "Executing crypto payment",
+            extra={
+                "payment_method": "Crypto",
+                "amount": amount,
+                "wallet_address": self.wallet_address,
+                "network": self.network,
+                "available_balance": self.balance,
+                "transaction_id": tx_id,
+            },
+        )
+
         self.validate()
+
         if float(amount) <= 0:
+            logger.error(
+                "Crypto payment failed: invalid amount",
+                extra={
+                    "payment_method": "Crypto",
+                    "amount": amount,
+                    "error": "Amount must be positive",
+                },
+            )
             raise PaymentError("PaymentError", "Amount must be positive.")
+
         if float(amount) > self._balance:
+            logger.error(
+                "Crypto payment failed: insufficient balance",
+                extra={
+                    "payment_method": "Crypto",
+                    "amount": amount,
+                    "balance": self.balance,
+                    "deficit": amount - self.balance,
+                },
+            )
             raise PaymentError("PaymentError", "Insufficient balance for payment.")
 
         # Simulate execution and include fee estimation
@@ -216,8 +251,29 @@ class CryptoPayment(PaymentStrategy):
                 "Fee": fee,
                 "Timestamp": ts,
             }
+            logger.info(
+                "Crypto payment executed successfully",
+                extra={
+                    "payment_method": "Crypto",
+                    "transaction_id": tx_id,
+                    "amount": amount,
+                    "fee": fee,
+                    "total_deducted": amount + fee,
+                    "remaining_balance": self.balance,
+                    "network": self.network,
+                },
+            )
             return transaction
         except Exception as exc:
+            logger.error(
+                "Crypto payment execution failed",
+                extra={
+                    "payment_method": "Crypto",
+                    "amount": amount,
+                    "error": str(exc),
+                },
+                exc_info=True,
+            )
             raise PaymentError(f"PaymentError: Failed to execute payment: {exc}")
 
     def estimate_fees(self, amount: float) -> float:

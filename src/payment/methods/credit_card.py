@@ -3,6 +3,9 @@ from datetime import date
 
 from src.core.base import PaymentStrategy
 from src.core.exceptions import PaymentError, ValidationError
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class CreditCardPayment(PaymentStrategy):
@@ -258,11 +261,41 @@ class CreditCardPayment(PaymentStrategy):
                 PaymentError: If the payment processing fails.
                 ValidationError: If validation fails before processing.
         """
+        logger.info(
+            "Executing credit card payment",
+            extra={
+                "payment_method": "CreditCard",
+                "amount": amount,
+                "cardholder": self.cardholder,
+                "masked_card": self.masked_card(self.cardnumber),
+                "available_balance": self.balance,
+            },
+        )
+
         if amount > self.balance:
             self.status = "Failed"
+            logger.error(
+                "Credit card payment failed: insufficient balance",
+                extra={
+                    "payment_method": "CreditCard",
+                    "amount": amount,
+                    "balance": self.balance,
+                    "deficit": amount - self.balance,
+                },
+            )
             raise PaymentError("PaymentError", "Insufficient balance")
+
         self.status = "Success"
         self.balance -= amount
+        logger.info(
+            "Credit card payment executed successfully",
+            extra={
+                "payment_method": "CreditCard",
+                "transaction_id": self.transaction_id,
+                "amount": amount,
+                "remaining_balance": self.balance,
+            },
+        )
         return self.generate_receipt(amount)
 
     def generate_receipt(self, amount: float) -> dict:
