@@ -70,7 +70,8 @@ def demo_successful_payment() -> None:
     # Type assertion: we know it's a CreditCardPayment with balance attribute
     from src.payment.methods.credit_card import CreditCardPayment
 
-    assert isinstance(credit_card, CreditCardPayment)
+    if not isinstance(credit_card, CreditCardPayment):
+        raise TypeError("Expected CreditCardPayment instance")
     print(f"  Balance: ${credit_card.balance:.2f}")
 
     # 4. Process payment
@@ -222,7 +223,8 @@ def demo_error_handling() -> None:
     # Type assertion for balance access
     from src.payment.methods.credit_card import CreditCardPayment
 
-    assert isinstance(credit_card, CreditCardPayment)
+    if not isinstance(credit_card, CreditCardPayment):
+        raise TypeError("Expected CreditCardPayment instance")
     credit_card.balance = 100.00  # Not enough!
 
     try:
