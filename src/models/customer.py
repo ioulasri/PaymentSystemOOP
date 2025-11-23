@@ -19,6 +19,9 @@ from typing import Any, Dict, List
 from uuid import uuid4
 
 from src.models.user import User
+from src.utils.logger import get_logger
+
+logger = get_logger("Customer")
 
 # Add parent directory to path to enable imports
 project_root = Path(__file__).parent.parent.parent
@@ -81,6 +84,8 @@ class Customer(User):
         from threading import RLock
 
         self._lock = RLock()
+
+        logger.info(f"Customer created: {self._user_id} - {name} ({email})")
 
     @property
     def name(self) -> str:
@@ -170,6 +175,7 @@ class Customer(User):
         Exposed as a method (not a property) to match common usage and
         to avoid accidental deactivation via attribute access.
         """
+        logger.warning(f"Deactivating customer: {self._user_id}")
         self._is_active = False
 
     def get_user_info(self) -> Dict[str, Any]:
@@ -219,6 +225,11 @@ class Customer(User):
             A mapping describing the transaction (id, amount, status,
             optional error message, etc.).
         """
+        logger.info(
+            f"Transaction added for customer {self._user_id}: "
+            f"ID={transaction.get('id')}, Amount={transaction.get('amount')}, "
+            f"Status={transaction.get('status')}"
+        )
         self._transaction_history.append(transaction)
 
     def view_transaction_history(self) -> List[Dict[str, Any]]:
@@ -250,7 +261,13 @@ class Customer(User):
             Transaction record including ``id``, ``amount``, ``method``,
             ``status`` and optional ``error``.
         """
+        logger.info(
+            f"Initiating payment for customer {self._user_id}: "
+            f"amount={amount}, method={method}"
+        )
+
         if method not in self._saved_payment_methods:
+            logger.error(f"Payment method not recognized: {method}")
             raise ValueError("Payment method not recognized")
 
         wallet = self._wallets.get(method)
@@ -264,6 +281,7 @@ class Customer(User):
 
         if wallet is None:
             transaction["error"] = "no wallet configured for method"
+            logger.warning(f"No wallet configured for method {method}")
             self.add_transaction(transaction)
             return transaction
 
@@ -271,8 +289,10 @@ class Customer(User):
         try:
             amount = float(amount)
         except (TypeError, ValueError):
+            logger.error(f"Invalid amount type: {amount}")
             raise ValueError("Amount must be a number")
         if amount <= 0:
+            logger.error(f"Invalid amount value: {amount}")
             raise ValueError("Amount must be positive")
 
         # Perform wallet update inside the lock to avoid races.
@@ -289,10 +309,14 @@ class Customer(User):
                     self._wallets[method] = new
         except (TypeError, ValueError, AttributeError) as exc:
             transaction["error"] = str(exc)
+            logger.error(f"Payment failed for customer {self._user_id}: {exc}")
             self.add_transaction(transaction)
             return transaction
 
         transaction["status"] = "success"
+        logger.info(
+            f"Payment successful for customer {self._user_id}: transaction_id={txn_id}"
+        )
         self.add_transaction(transaction)
         return transaction
 
@@ -304,6 +328,7 @@ class Customer(User):
         payment backends.
         """
         if method not in self._saved_payment_methods:
+            logger.info(f"Saving payment method for customer {self._user_id}: {method}")
             self._saved_payment_methods.append(method)
 
     def get_fraud_status(self) -> str:
