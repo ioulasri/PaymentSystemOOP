@@ -7,6 +7,9 @@ from typing import List
 from src.core.exceptions import OrderError, ProjectTypeError, ProjectValueError
 from src.models.customer import Customer
 from src.models.item import Item
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 # Add project root to path for absolute imports
 project_root = Path(__file__).parent.parent.parent
@@ -61,6 +64,14 @@ class Order:
         self.created_at: datetime = datetime.now()
         self.payment_method: str = ""
         self.transaction_id: str = ""
+        logger.info(
+            "Order created",
+            extra={
+                "order_id": self.order_id,
+                "customer_id": customer._user_id,
+                "customer_name": customer._name,
+            },
+        )
 
     VALID_STATUSES = [
         "pending",
@@ -78,10 +89,27 @@ class Order:
     @status.setter
     def status(self, value: str) -> None:
         if value not in Order.VALID_STATUSES:
+            logger.error(
+                "Invalid order status",
+                extra={
+                    "order_id": self.order_id,
+                    "invalid_status": value,
+                    "valid_statuses": Order.VALID_STATUSES,
+                },
+            )
             raise ProjectValueError(
                 "ValueError", f"Invalid status. Must be one of: {Order.VALID_STATUSES}"
             )
+        old_status = self._status
         self._status = value
+        logger.info(
+            "Order status updated",
+            extra={
+                "order_id": self.order_id,
+                "old_status": old_status,
+                "new_status": value,
+            },
+        )
 
     def add_item(self, item: Item) -> None:
         """
@@ -104,6 +132,14 @@ class Order:
                 item.price * (1 - item.discount)
         """
         if self.status in ["shipped", "delivered", "cancelled"]:
+            logger.error(
+                "Cannot add item to completed/cancelled order",
+                extra={
+                    "order_id": self.order_id,
+                    "order_status": self.status,
+                    "item_id": item.id,
+                },
+            )
             raise OrderError("OrderError", "Cannot modify completed/cancelled orders.")
         # Validate item type and stock first
         if not self.valid_item(item):
@@ -111,7 +147,19 @@ class Order:
         if item.quantity <= 0:
             raise ProjectValueError("ItemError", "Quantity should be 1 or more")
         self.items.append(item)
-        self.total_amount += item.quantity * (item.price - item.price * item.discount)
+        item_total = item.quantity * (item.price - item.price * item.discount)
+        self.total_amount += item_total
+        logger.info(
+            "Item added to order",
+            extra={
+                "order_id": self.order_id,
+                "item_id": item.id,
+                "item_name": item.name,
+                "quantity": item.quantity,
+                "item_total": item_total,
+                "order_total": self.total_amount,
+            },
+        )
 
     def valid_item(self, item: Item) -> bool:
         """
@@ -158,10 +206,23 @@ class Order:
         for i in self.items:
             if i.id == item.id:
                 self.items.remove(i)
-                self.total_amount -= item.quantity * (
-                    item.price - item.price * item.discount
+                item_total = item.quantity * (item.price - item.price * item.discount)
+                self.total_amount -= item_total
+                logger.info(
+                    "Item removed from order",
+                    extra={
+                        "order_id": self.order_id,
+                        "item_id": item.id,
+                        "item_name": item.name,
+                        "item_total": item_total,
+                        "order_total": self.total_amount,
+                    },
                 )
                 return True
+        logger.warning(
+            "Item not found in order for removal",
+            extra={"order_id": self.order_id, "item_id": item.id},
+        )
         return False
 
     def calculate_total(self) -> float:
