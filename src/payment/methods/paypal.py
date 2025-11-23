@@ -2,6 +2,9 @@ import re
 
 from src.core.base import PaymentStrategy
 from src.core.exceptions import PaymentError, ProjectValueError, ValidationError
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class Paypal(PaymentStrategy):
@@ -180,14 +183,53 @@ class Paypal(PaymentStrategy):
                     insufficient balance or unverified account.
                 ValidationError: If validation fails before processing.
         """
+        logger.info(
+            "Executing PayPal payment",
+            extra={
+                "payment_method": "PayPal",
+                "amount": amount,
+                "email": self.emailaddress,
+                "verified": self.verified,
+                "available_balance": self.balance,
+            },
+        )
+
         if not self.verified:
             self.status = "Failed"
+            logger.error(
+                "PayPal payment failed: account not verified",
+                extra={
+                    "payment_method": "PayPal",
+                    "email": self.emailaddress,
+                    "verified": self.verified,
+                },
+            )
             raise PaymentError("PaymentError", "Account not verified")
+
         if amount > self.balance:
             self.status = "Failed"
+            logger.error(
+                "PayPal payment failed: insufficient balance",
+                extra={
+                    "payment_method": "PayPal",
+                    "amount": amount,
+                    "balance": self.balance,
+                    "deficit": amount - self.balance,
+                },
+            )
             raise PaymentError("PaymentError", "Insufficient balance")
+
         self.status = "Success"
         self.balance -= amount
+        logger.info(
+            "PayPal payment executed successfully",
+            extra={
+                "payment_method": "PayPal",
+                "transaction_id": self.transaction_id,
+                "amount": amount,
+                "remaining_balance": self.balance,
+            },
+        )
         return self.generate_receipt(amount)
 
     def generate_receipt(self, amount: float) -> dict:
