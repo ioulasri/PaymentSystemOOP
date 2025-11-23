@@ -10,7 +10,6 @@ class PaymentStrategy(ABC):
         self.status: str
         self.transaction_id: str = f"TX-{uuid4()}"
 
-
     @abstractmethod
     def validate(self) -> bool:
         pass

@@ -17,13 +17,13 @@ project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-# Now we can import from src
-from src.core.exceptions import OrderError, PaymentError
-from src.models.customer import Customer
-from src.models.item import Item
-from src.models.order import Order
-from src.services.payment_factory import PaymentFactory
-from src.services.payment_processor import PaymentProcessor
+# Now we can import from src (E402 is intentional - path must be set first)
+from src.core.exceptions import OrderError, PaymentError  # noqa: E402
+from src.models.customer import Customer  # noqa: E402
+from src.models.item import Item  # noqa: E402
+from src.models.order import Order  # noqa: E402
+from src.services.payment_factory import PaymentFactory  # noqa: E402
+from src.services.payment_processor import PaymentProcessor  # noqa: E402
 
 
 def demo_successful_payment() -> None:

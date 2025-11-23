@@ -113,7 +113,7 @@ class Order:
         self.items.append(item)
         self.total_amount += item.quantity * (item.price - item.price * item.discount)
 
-    def valid_item(self, item) -> bool:
+    def valid_item(self, item: Item) -> bool:
         """
         Validate that an item can be added to the order.
 
@@ -122,7 +122,7 @@ class Order:
         2. Checks that the item has stock available (stock > 0)
 
         Args:
-                item: The item to validate.
+                item (Item): The item to validate.
 
         Returns:
                 bool: True if the item is valid.
