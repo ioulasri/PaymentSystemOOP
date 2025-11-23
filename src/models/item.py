@@ -1,6 +1,9 @@
 from uuid import uuid4
 
 from src.core.exceptions import ProjectValueError
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class Item:
@@ -40,6 +43,7 @@ class Item:
         self._price: float = 0
         self._stock: int = 0
         self._discount: float = 0
+        logger.debug("Item created", extra={"item_id": self.id, "item_name": name})
 
     @property
     def price(self) -> float:
@@ -65,7 +69,24 @@ class Item:
                 ValueError: If the price is zero or negative.
         """
         if value <= 0:
+            logger.error(
+                "Invalid price value",
+                extra={
+                    "item_id": self.id,
+                    "item_name": self.name,
+                    "invalid_price": value,
+                },
+            )
             raise ProjectValueError("ValueError", "Price should be positive")
+        logger.debug(
+            "Item price updated",
+            extra={
+                "item_id": self.id,
+                "item_name": self.name,
+                "old_price": self._price,
+                "new_price": value,
+            },
+        )
         self._price = value
 
     @property
@@ -119,7 +140,24 @@ class Item:
                 ValueError: If the stock quantity is negative.
         """
         if value < 0:
+            logger.error(
+                "Invalid stock value",
+                extra={
+                    "item_id": self.id,
+                    "item_name": self.name,
+                    "invalid_stock": value,
+                },
+            )
             raise ProjectValueError("ValueError", "Stock amount should be positive")
+        logger.info(
+            "Item stock updated",
+            extra={
+                "item_id": self.id,
+                "item_name": self.name,
+                "old_stock": self._stock,
+                "new_stock": value,
+            },
+        )
         self._stock = value
 
     @property
