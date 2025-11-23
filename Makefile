@@ -1,8 +1,9 @@
-.PHONY: help install install-dev test test-cov test-fast lint format type-check security clean build docs serve-docs run
+.PHONY: help venv install install-dev test test-cov test-fast lint format type-check security clean build docs serve-docs run
 
 # Default target
 help:
 	@echo "Available commands:"
+	@echo "  venv         - Create virtual environment if it doesn't exist"
 	@echo "  install      - Install production dependencies"
 	@echo "  install-dev  - Install development dependencies"
 	@echo "  test         - Run all tests"
@@ -19,11 +20,22 @@ help:
 	@echo "  run          - Run the payment system"
 	@echo "  pre-commit   - Install pre-commit hooks"
 
+# Virtual Environment
+venv:
+	@if [ ! -d ".venv" ]; then \
+		echo "Creating virtual environment..."; \
+		python3 -m venv .venv; \
+		echo "Virtual environment created successfully!"; \
+		echo "Run 'make install-dev' to install dependencies."; \
+	else \
+		echo "Virtual environment already exists at .venv"; \
+	fi
+
 # Installation
-install:
+install: venv
 	.venv/bin/pip install -e .
 
-install-dev:
+install-dev: venv
 	.venv/bin/pip install -e ".[dev,test]"
 	.venv/bin/pip install pre-commit
 	.venv/bin/pre-commit install
