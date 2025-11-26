@@ -43,6 +43,44 @@ A comprehensive **Object-Oriented Payment System** implemented in Python with en
 - Python 3.9 or higher
 - Git
 
+### Database Setup (PostgreSQL + SQLAlchemy)
+
+1. **Install PostgreSQL** (if not already installed):
+    - macOS: `brew install postgresql`
+    - Ubuntu: `sudo apt-get install postgresql`
+
+2. **Create a database and user:**
+    ```sh
+    createuser payment_user --pwprompt
+    createdb payment_db --owner=payment_user
+    # Use password: payment_pass (or set your own and update .env)
+    ```
+
+3. **Configure environment variables (optional):**
+    - By default, the following are used:
+      - `PAYMENT_DB_USER=payment_user`
+      - `PAYMENT_DB_PASSWORD=payment_pass`
+      - `PAYMENT_DB_HOST=localhost`
+      - `PAYMENT_DB_PORT=5432`
+      - `PAYMENT_DB_NAME=payment_db`
+    - You can override these in your shell or with a `.env` file.
+
+4. **Initialize the database tables:**
+    ```sh
+    PYTHONPATH=. .venv/bin/python src/utils/init_db.py
+    ```
+
+5. **Test DB connection and CRUD:**
+    ```sh
+    PYTHONPATH=. .venv/bin/python src/utils/test_db_crud.py
+    ```
+
+6. **Use SQLAlchemy models and services:**
+    - See `src/models/sqlalchemy_models.py` for ORM models.
+    - See `src/services/db_order_service.py` for example CRUD service integration.
+
+---
+
 ### Installation
 
 ```bash
