@@ -1,0 +1,52 @@
+FULL TEST OUTPUT - 2025-11-20 20:13:32
+============================================================
+
+============================= test session starts ==============================
+platform linux -- Python 3.13.7, pytest-9.0.1, pluggy-1.6.0
+rootdir: /home/mak3r/Desktop/PaymentSystemOOP
+configfile: pyproject.toml
+plugins: anyio-4.11.0, xdist-3.8.0, cov-7.0.0
+collected 200 items
+
+tests/unit/test_abc.py ..                                                [  1%]
+tests/unit/test_credit_card.py ......................................... [ 21%]
+....................                                                     [ 31%]
+tests/unit/test_crypto.py ......                                         [ 34%]
+tests/unit/test_order.py ............................................... [ 58%]
+...............................                                          [ 73%]
+tests/unit/test_paypal.py .............................................. [ 96%]
+...                                                                      [ 98%]
+tests/unit/test_user.py ....                                             [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.13.7-final-0 ________________
+
+Name                                 Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------------------------
+src/__init__.py                          0      0      0      0   100%
+src/__version__.py                       4      4      0      0     0%   3-6
+src/core/__init__.py                     0      0      0      0   100%
+src/core/base.py                         9      0      0      0   100%
+src/core/exceptions.py                  20      1      0      0    95%   21
+src/main.py                              0      0      0      0   100%
+src/models/__init__.py                   0      0      0      0   100%
+src/models/admin.py                     62     23     20      5    54%   90->89, 92, 98->97, 104, 108-115, 121-131, 149-156, 160
+src/models/customer.py                  69     16     16      6    74%   24, 92, 105, 108-110, 166-168, 172, 174-175, 180-183, 196->exit, 201
+src/models/item.py                      47      6      8      4    82%   68, 95, 122, 155, 165, 174
+src/models/order.py                     61      2     18      2    95%   10, 109
+src/models/user.py                      11      0      0      0   100%
+src/order/__init__.py                    0      0      0      0   100%
+src/payment/__init__.py                  0      0      0      0   100%
+src/payment/methods/__init__.py          0      0      0      0   100%
+src/payment/methods/credit_card.py     117     31     34      1    72%   83, 152, 199-203, 254-259, 278-286, 354-365
+src/payment/methods/crypto.py          116     25     16      2    77%   23-24, 68-73, 77-94, 145-148, 175-179, 253, 257
+src/payment/methods/paypal.py           76     21     18      0    71%   44, 57-59, 180-188, 204-211
+src/services/__init__.py                 0      0      0      0   100%
+src/user/__init__.py                     0      0      0      0   100%
+src/utils/__init__.py                    0      0      0      0   100%
+src/utils/logger.py                      0      0      0      0   100%
+--------------------------------------------------------------------------------
+TOTAL                                  592    129    130     20    75%
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+============================= 200 passed in 0.59s ==============================

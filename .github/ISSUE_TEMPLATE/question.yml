@@ -1,0 +1,56 @@
+name: Question
+description: Ask a question about this project
+title: "[QUESTION]: "
+labels: ["question", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your question! We're here to help. 💡
+
+  - type: textarea
+    id: question
+    attributes:
+      label: What is your question?
+      description: Please provide a clear and concise description of your question
+      placeholder: What would you like to know?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: What have you tried? Any relevant context that might help us understand your question better?
+      placeholder: I was trying to... I expected... I found...
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (if relevant)
+      description: Please provide environment details if your question is related to setup or configuration
+      placeholder: |
+        - OS: [e.g. Ubuntu 20.04, Windows 10, macOS 12.0]
+        - Python Version: [e.g. 3.9, 3.10, 3.11]
+        - Package Version: [e.g. 1.0.0]
+
+  - type: checkboxes
+    id: research
+    attributes:
+      label: Research Done
+      description: Have you done any research before asking this question?
+      options:
+        - label: I have searched existing issues and discussions
+        - label: I have read the documentation
+        - label: I have searched online for similar questions
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our Code of Conduct
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
