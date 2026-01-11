@@ -41,7 +41,7 @@ class TestPaymentFactory(unittest.TestCase):
         self.valid_credit_card_params = {
             "cardholder": "Mr John Doe",
             "cardnumber": "4532123456789012",
-            "expirationdate": "12-25",
+            "expirationdate": "12-28",
             "cvv": "123",
             "balance": 1000.0,
         }
@@ -116,7 +116,7 @@ class TestCreateCreditCard(TestPaymentFactory):
         assert isinstance(payment, CreditCardPayment)  # Type narrowing for mypy
         self.assertEqual(payment.cardholder, "Mr John Doe")
         self.assertEqual(payment.cardnumber, "4532123456789012")
-        self.assertEqual(payment.expirationdate, "12-25")
+        self.assertEqual(payment.expirationdate, "12-28")
         self.assertEqual(payment.cvv, "123")
         self.assertEqual(payment.balance, 1000.0)
 
@@ -332,7 +332,7 @@ class TestConfigurationMethods(TestPaymentFactory):
 
         self.assertEqual(payment.cardholder, "Mr John Doe")
         self.assertEqual(payment.cardnumber, "4532123456789012")
-        self.assertEqual(payment.expirationdate, "12-25")
+        self.assertEqual(payment.expirationdate, "12-28")
         self.assertEqual(payment.cvv, "123")
         self.assertEqual(payment.balance, 1000.0)
 

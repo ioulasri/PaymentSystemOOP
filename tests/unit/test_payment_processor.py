@@ -45,7 +45,7 @@ class TestPaymentProcessorSuccess(unittest.TestCase):
         self.payment = CreditCardPayment()
         self.payment.cardholder = "Mr John Doe"
         self.payment.cardnumber = "4532123456789012"
-        self.payment.expirationdate = "12-25"
+        self.payment.expirationdate = "12-28"
         self.payment.cvv = "123"
         self.payment.balance = 5000.0
 
@@ -112,7 +112,7 @@ class TestPaymentProcessorValidation(unittest.TestCase):
         self.payment = CreditCardPayment()
         self.payment.cardholder = "Mrs Jane Doe"
         self.payment.cardnumber = "4532123456789012"
-        self.payment.expirationdate = "12-25"
+        self.payment.expirationdate = "12-28"
         self.payment.cvv = "123"
         self.payment.balance = 2000.0
 
@@ -160,7 +160,7 @@ class TestPaymentProcessorPaymentFailures(unittest.TestCase):
         self.payment = CreditCardPayment()
         self.payment.cardholder = "Ms Alice Brown"
         self.payment.cardnumber = "4532123456789012"
-        self.payment.expirationdate = "12-25"
+        self.payment.expirationdate = "12-28"
         self.payment.cvv = "123"
 
     def test_insufficient_balance_raises_error(self):
@@ -180,7 +180,8 @@ class TestPaymentProcessorPaymentFailures(unittest.TestCase):
         expired_payment.cvv = "123"
         expired_payment.balance = 1000.0
         # Set expired date - this will raise when validate() is called
-        expired_payment._CreditCardPayment__expiration_date = "12-20"  # Bypass setter
+        # Bypass setter using name mangling
+        expired_payment._CreditCardPayment__expiration_date = "12-20"  # type: ignore[attr-defined]  # noqa: E501
 
         with self.assertRaises(ValidationError):
             PaymentProcessor.process_payment(self.customer, self.order, expired_payment)
@@ -202,7 +203,7 @@ class TestPaymentProcessorErrorContext(unittest.TestCase):
         self.payment = CreditCardPayment()
         self.payment.cardholder = "Mr Test User"
         self.payment.cardnumber = "4532123456789012"
-        self.payment.expirationdate = "12-25"
+        self.payment.expirationdate = "12-28"
         self.payment.cvv = "123"
         self.payment.balance = 50.0  # Insufficient
 
